@@ -25,6 +25,8 @@
       --danger:#ef4444;
       --youtube:#dc2626;
       --vimeo:#60a5fa;
+      --carousel-cards: 4;
+      --carousel-gap: 14px;
     }
 
     *{ box-sizing:border-box; }
@@ -41,7 +43,7 @@
     .wrap{
       max-width: 1200px;
       margin: 0 auto;
-      padding: 28px 18px 60px;
+      padding: 28px 1px 60px;
     }
 
     .topbar{
@@ -124,7 +126,7 @@
     }
     .filters{
       display:grid;
-      grid-template-columns: 1.4fr .8fr .8fr .8fr .8fr .8fr;
+      grid-template-columns: 1.5fr .85fr .85fr .85fr .9fr;
       gap:10px;
       align-items:center;
     }
@@ -197,21 +199,104 @@
       border-radius: 999px;
     }
 
-    .grid{
+    .carousel{
       display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
+      grid-template-columns: auto 1fr auto;
+      align-items:center;
+      gap: 2px;
+      position:relative;
     }
-    @media (max-width: 1100px){ .grid{ grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 780px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 520px){ .grid{ grid-template-columns: 1fr; } }
+    .carouselViewport{
+      position:relative;
+      overflow:hidden;
+      border-radius: 20px;
+    }
+    .carouselViewport:before,
+    .carouselViewport:after{
+      content:"";
+      position:absolute;
+      top:0;
+      bottom:0;
+      width: 44px;
+      pointer-events:none;
+      z-index: 2;
+    }
+    .carouselViewport:before{
+      left:0;
+      background: linear-gradient(90deg, rgba(246,247,251,.98), rgba(246,247,251,0));
+    }
+    .carouselViewport:after{
+      right:0;
+      background: linear-gradient(270deg, rgba(246,247,251,.98), rgba(246,247,251,0));
+    }
+    .carouselTrack{
+      display:flex;
+      gap: var(--carousel-gap);
+      transition: transform .35s ease;
+      will-change: transform;
+      padding: 2px;
+    }
+    .carouselTrack .card{
+      flex: 0 0 calc((100% - (var(--carousel-gap) * (var(--carousel-cards) - 1))) / var(--carousel-cards));
+    }
+    .carouselBtn{
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      border:1px solid rgba(37,99,235,.25);
+      background: linear-gradient(145deg, #ffffff, #e0e7ff);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition: transform .12s ease, box-shadow .2s ease, opacity .2s ease;
+      position:relative;
+    }
+    .carouselBtn:before{
+      content:"";
+      width: 12px;
+      height: 12px;
+      border-top: 3px solid var(--brand2);
+      border-right: 3px solid var(--brand2);
+      transform: rotate(225deg);
+      margin-left: 2px;
+    }
+    .carouselBtn.next:before{
+      transform: rotate(45deg);
+      margin-left: -2px;
+    }
+    .carouselBtn:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 16px 34px rgba(37,99,235,.2);
+    }
+    .carouselBtn:active{ transform: translateY(0); }
+    .carouselBtn:disabled{
+      opacity:.35;
+      cursor:default;
+      box-shadow: 0 6px 14px rgba(37,99,235,.12);
+    }
+    @media (max-width: 1100px){ :root{ --carousel-cards: 3; } }
+    @media (max-width: 820px){ :root{ --carousel-cards: 2; } }
+    @media (max-width: 560px){
+      :root{ --carousel-cards: 1; }
+      .carousel{ grid-template-columns: 1fr; }
+      .carouselBtn{
+        width: 44px;
+        height: 44px;
+        position:absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+      }
+      .carouselBtn.prev{ left: 10px; }
+      .carouselBtn.next{ right: 10px; }
+    }
 
     .card{
       background: rgba(255,255,255,.92);
       border:1px solid var(--border);
       border-radius: 18px;
       overflow:hidden;
-      box-shadow: 0 8px 22px rgba(2,6,23,.07);
       transition: transform .10s ease, box-shadow .15s ease, border-color .15s ease;
       cursor:pointer;
       display:flex;
@@ -269,7 +354,7 @@
       padding: 3px 3px 3px;
       display:flex;
       flex-direction:column;
-      gap:10px;
+      gap:1px;
       flex:1;
     }
     .row{
@@ -490,18 +575,6 @@
             <select id="type"></select>
           </div>
         </div>
-
-        <div class="field">
-          <div class="label">Sort</div>
-          <div class="control">
-            <select id="sort">
-              <option value="relevance">Relevance</option>
-              <option value="brand">Brand (A→Z)</option>
-              <option value="title">Title (A→Z)</option>
-              <option value="group">Product Group (A→Z)</option>
-            </select>
-          </div>
-        </div>
         <div class="field">
           <div class="label">Reset</div>
           <button class="btn danger block" id="btnReset" type="button">Reset filters</button>
@@ -515,7 +588,13 @@
 
     </div>
 
-    <div id="grid" class="grid" aria-live="polite"></div>
+    <div class="carousel" id="carousel" aria-label="Video carousel">
+      <button class="carouselBtn prev" id="btnPrev" type="button" aria-label="Previous videos"></button>
+      <div class="carouselViewport" id="carouselViewport">
+        <div id="grid" class="carouselTrack" aria-live="polite"></div>
+      </div>
+      <button class="carouselBtn next" id="btnNext" type="button" aria-label="Next videos"></button>
+    </div>
     <div id="empty" class="empty" style="display:none">
       <strong>No matches.</strong><br/>
       Try resetting filters or searching a broader term.
@@ -921,12 +1000,15 @@ const els = {
   brand: document.getElementById("brand"),
   group: document.getElementById("group"),
   type: document.getElementById("type"),
-  sort: document.getElementById("sort"),
   chips: document.getElementById("chips"),
   count: document.getElementById("count"),
+  carousel: document.getElementById("carousel"),
+  carouselViewport: document.getElementById("carouselViewport"),
   grid: document.getElementById("grid"),
   empty: document.getElementById("empty"),
   btnReset: document.getElementById("btnReset"),
+  btnPrev: document.getElementById("btnPrev"),
+  btnNext: document.getElementById("btnNext"),
 
   overlay: document.getElementById("overlay"),
   mTitle: document.getElementById("mTitle"),
@@ -940,9 +1022,11 @@ const els = {
 
 let videos = [];
 let vimeoCache = new Map(); // url -> oembed json
-const DEFAULT_BRAND = "All brands";
-const DEFAULT_GROUP = "All product groups";
-const DEFAULT_TYPE = "All types";
+let filteredList = [];
+let carouselIndex = 0;
+const DEFAULT_BRAND = "All";
+const DEFAULT_GROUP = "All";
+const DEFAULT_TYPE = "All";
 
 init();
 
@@ -957,8 +1041,10 @@ function init(){
   els.brand.addEventListener("change", render);
   els.group.addEventListener("change", render);
   els.type.addEventListener("change", render);
-  els.sort.addEventListener("change", render);
   els.btnReset.addEventListener("click", resetFilters);
+  els.btnPrev.addEventListener("click", ()=>shiftCarousel(-1));
+  els.btnNext.addEventListener("click", ()=>shiftCarousel(1));
+  window.addEventListener("resize", handleCarouselResize);
 
   els.btnClose.addEventListener("click", closeModal);
   els.overlay.addEventListener("click", (e)=>{ if (e.target === els.overlay) closeModal(); });
@@ -1088,7 +1174,7 @@ function resetFilters(){
   els.brand.value = DEFAULT_BRAND;
   els.group.value = DEFAULT_GROUP;
   els.type.value = DEFAULT_TYPE;
-  els.sort.value = "relevance";
+  carouselIndex = 0;
   render();
 }
 
@@ -1105,17 +1191,14 @@ function filterList(){
     (type === DEFAULT_TYPE || v.subGroup === type)
   );
 
-  const sort = els.sort.value;
-  if (sort === "brand") list.sort((a,b)=>a.brand.localeCompare(b.brand) || a.title.localeCompare(b.title));
-  if (sort === "title") list.sort((a,b)=>a.title.localeCompare(b.title));
-  if (sort === "group") list.sort((a,b)=>a.mainGroup.localeCompare(b.mainGroup) || a.title.localeCompare(b.title));
-
   return list;
 }
 
 function render(){
   syncFilterOptions();
   const list = filterList();
+  carouselIndex = 0;
+  filteredList = list;
   els.count.textContent = list.length.toString();
 
   const chips = [];
@@ -1126,7 +1209,12 @@ function render(){
   if (els.type.value !== DEFAULT_TYPE) chips.push({k:"Type", v:els.type.value});
   els.chips.innerHTML = chips.map(c=>`<span class="chip">${escapeHtml(c.k)}: ${escapeHtml(c.v)}</span>`).join("");
 
+  renderCarousel(list);
+}
+
+function renderCarousel(list){
   els.grid.innerHTML = "";
+  els.carousel.style.display = list.length ? "grid" : "none";
   els.empty.style.display = list.length ? "none" : "block";
 
   for (const v of list){
@@ -1175,6 +1263,63 @@ function render(){
       if (src) img.src = src;
     }).catch(()=>{});
   }
+
+  carouselIndex = clampCarouselIndex(carouselIndex, list.length, getPerView());
+  requestAnimationFrame(updateCarouselPosition);
+  updateCarouselControls(list.length);
+}
+
+function getPerView(){
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--carousel-cards").trim();
+  const value = parseInt(raw, 10);
+  return Number.isFinite(value) && value > 0 ? value : 4;
+}
+
+function getCarouselGap(){
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--carousel-gap").trim();
+  const value = parseFloat(raw);
+  return Number.isFinite(value) ? value : 14;
+}
+
+function clampCarouselIndex(index, length, perView){
+  const maxIndex = Math.max(0, length - perView);
+  return Math.min(Math.max(index, 0), maxIndex);
+}
+
+function updateCarouselControls(length){
+  const perView = getPerView();
+  const maxIndex = Math.max(0, length - perView);
+  const disabled = length <= perView;
+  els.btnPrev.disabled = disabled || carouselIndex <= 0;
+  els.btnNext.disabled = disabled || carouselIndex >= maxIndex;
+}
+
+function handleCarouselResize(){
+  carouselIndex = clampCarouselIndex(carouselIndex, filteredList.length, getPerView());
+  updateCarouselPosition();
+  updateCarouselControls(filteredList.length);
+}
+
+function updateCarouselPosition(){
+  if (!filteredList.length){
+    els.grid.style.transform = "translateX(0px)";
+    return;
+  }
+  const perView = getPerView();
+  const gap = getCarouselGap();
+  const viewportWidth = els.carouselViewport.clientWidth;
+  const cardWidth = (viewportWidth - gap * (perView - 1)) / perView;
+  const offset = (cardWidth + gap) * carouselIndex;
+  els.grid.style.transform = `translateX(${-offset}px)`;
+}
+
+function shiftCarousel(direction){
+  if (!filteredList.length) return;
+  const perView = getPerView();
+  const step = perView;
+  carouselIndex = clampCarouselIndex(carouselIndex + direction * step, filteredList.length, perView);
+  updateCarouselPosition();
+  updateCarouselControls(filteredList.length);
 }
 
 function compactUrl(url){
