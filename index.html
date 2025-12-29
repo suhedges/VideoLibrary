@@ -221,7 +221,6 @@
       min-height: 280px;
     }
     .card:hover{
-      transform: translateY(-2px);
       box-shadow: var(--shadow2);
       border-color:#cbd5e1;
     }
@@ -283,6 +282,8 @@
       justify-content:center;
     }
     .badge{
+      width:100%;
+      text-align:center;
       font-size: 12px;
       font-weight: 800;
       padding: 5px 10px;
@@ -292,6 +293,7 @@
       color: var(--brand2);
     }
     .tag{
+      display:none;
       font-size: 12px;
       font-weight: 700;
       padding: 5px 10px;
@@ -378,6 +380,9 @@
       font-size: 15px;
       line-height:1.25;
     }
+    
+    h2#mTitle{display:none;}
+    
     .modalHead .sub{
       margin: 6px 0 0;
       color: var(--muted);
