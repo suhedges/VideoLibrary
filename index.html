@@ -526,7 +526,7 @@
     </div>
   </div>
 
-  <!-- Modal -->
+
   <div class="modalOverlay" id="overlay" role="dialog" aria-modal="true" aria-label="Video player">
     <div class="modal">
       <div class="modalHead">
@@ -537,7 +537,6 @@
         <button class="close" id="btnClose" aria-label="Close">✕</button>
       </div>
       <div class="modalBody" id="mBody">
-        <!-- player injected here -->
       </div>
       <div class="modalFoot">
         <div class="left" id="mFootLeft"></div>
@@ -550,18 +549,7 @@
   </div>
 
 <script>
-/**
- * PATCH SUMMARY (what changed vs your version):
- * 1) Removed all ":contentReference[oaicite:*]" tokens (they break JS).
- * 2) YouTube embed now ALWAYS uses clean https://www.youtube.com/embed/<id> (no watch URLs).
- * 3) iframe includes referrerpolicy="strict-origin-when-cross-origin" (helps with Error 153).
- * 4) "Open original" no longer uses "noreferrer" (can trigger referrer-stripping).
- * 5) Vimeo: we prefer direct player.vimeo.com/video/<id> embed; if oEmbed works, we use its iframe.
- */
 
-/* =========================
-   Seed list (TSV)
-   ========================= */
 const VIDEO_SEED_TSV = `
 Timken\thttps://www.youtube.com/watch?v=_xrns4-fYN0&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=2&pp=iAQB\tInstalling Timken® Quick Fit Split Cylindrical Roller Bearing Housed Unit (mounted bearing)\tMounted Bearings (Cylindrical)
 Timken\thttps://www.youtube.com/watch?v=81zHRycNa8s&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=3&pp=iAQB\tTimken Tricks of the Trade: Trailer Wheel Bearing Maintenance\tBearings / Wheel End Bearings
@@ -806,13 +794,7 @@ Rotor Clip\thttps://www.youtube.com/watch?v=zf0SjQWnKu8\tHow To Use A Retaining 
 
 `.trim();
 
-/**
- * Optional: put a videos.json next to this HTML with:
- * [
- *   {"brand":"Timken","url":"https://...","title":"...","group":"..."},
- *   {"brand":"MyBrand","url":"./videos/my-local.mp4","title":"...","group":"...","provider":"local","poster":"./posters/x.jpg"}
- * ]
- */
+
 let RAW_VIDEOS = parseTSV(VIDEO_SEED_TSV);
 
 function parseTSV(tsv){
@@ -887,9 +869,6 @@ function uniqVideos(list){
   return [...m.values()];
 }
 
-/* =========================
-   YouTube / Vimeo helpers
-   ========================= */
 function getYouTubeId(url){
   try{
     const u = new URL(url);
@@ -926,8 +905,6 @@ function youTubeThumb(id){
 }
 
 function youTubeEmbedSrc(id){
-  // PATCH: keep embed clean/reliable to avoid config errors
-  // You can add params later; keep minimal first.
   return `https://www.youtube.com/embed/${id}`;
 }
 
@@ -943,9 +920,6 @@ async function vimeoOembed(url){
   return await res.json();
 }
 
-/* =========================
-   State + UI
-   ========================= */
 const els = {
   q: document.getElementById("q"),
   brand: document.getElementById("brand"),
@@ -1140,7 +1114,6 @@ function filterList(){
   if (sort === "title") list.sort((a,b)=>a.title.localeCompare(b.title));
   if (sort === "group") list.sort((a,b)=>a.mainGroup.localeCompare(b.mainGroup) || a.title.localeCompare(b.title));
 
-  // relevance keeps original (deduped) order
   return list;
 }
 
@@ -1282,7 +1255,6 @@ async function openModal(v){
 
   els.mFootLeft.textContent = v.url;
 
-  // PATCH: do NOT use noreferrer (it can strip referrer and contribute to Error 153)
   els.btnOpen.onclick = ()=> window.open(v.url, "_blank", "noopener");
 
   els.btnCopy.onclick = async ()=>{
@@ -1313,6 +1285,7 @@ async function openModal(v){
       els.mBody.appendChild(iframe);
     }
   } else if (v.provider === "vimeo"){
+
     const direct = vimeoEmbedSrcFromUrl(v.url);
 
     if (direct){
@@ -1365,9 +1338,6 @@ function closeModal(){
   currentVideo = null;
 }
 
-/* =========================
-   Optional: load videos.json
-   ========================= */
 async function loadJson(){
   try{
     const res = await fetch("./videos.json", { cache:"no-store" });
