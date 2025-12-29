@@ -32,7 +32,7 @@
     *{ box-sizing:border-box; }
     body{
       margin:0;
-      margin-top:75px;
+      margin-top:45px;
       font-family: "Roboto", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial,
                    "Apple Color Emoji","Segoe UI Emoji";
       font-weight: 400;
@@ -124,10 +124,12 @@
       box-shadow: var(--shadow);
       padding: 14px;
       margin-bottom: 16px;
+      position:relative;
+      z-index: 5;
     }
     .filters{
       display:grid;
-      grid-template-columns: 1.5fr .85fr .85fr .85fr .9fr;
+      grid-template-columns: 1.45fr .85fr .85fr .85fr .85fr .9fr;
       gap:10px;
       align-items:center;
     }
@@ -179,6 +181,94 @@
       background: transparent;
       color: var(--text);
       cursor:pointer;
+    }
+    .control.select{
+      position:relative;
+      padding:0;
+      display:block;
+    }
+    .selectTrigger{
+      width:100%;
+      border:0;
+      background: transparent;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .selectLabel{
+      flex:1;
+      text-align:left;
+    }
+    .selectChevron{
+      width: 12px;
+      height: 12px;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: rotate(45deg);
+      transition: transform .15s ease;
+      flex-shrink:0;
+      margin-left: 6px;
+    }
+    .control.selectOpen .selectChevron{
+      transform: rotate(-135deg);
+    }
+    .selectMenu{
+      position:absolute;
+      top: calc(100% + 6px);
+      left:0;
+      width:100%;
+      max-height: 341px;
+      overflow-y:auto;
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 6px;
+      opacity:0;
+      transform: translateY(-6px);
+      pointer-events:none;
+      z-index: 50;
+    }
+    .control.selectOpen .selectMenu{
+      opacity:1;
+      transform: translateY(0);
+      pointer-events:auto;
+    }
+    .selectOption{
+      width:100%;
+      border:0;
+      background: transparent;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      text-align:left;
+      cursor:pointer;
+      transition: background .12s ease, color .12s ease;
+    }
+    .selectOption:hover,
+    .selectOption:focus{
+      outline: none;
+      background: rgba(37,99,235,.08);
+    }
+    .selectOption.selected{
+      background: rgba(37,99,235,.12);
+      color: var(--brand2);
+      font-weight: 700;
+    }
+    .nativeSelect{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+      width:0;
+      height:0;
     }
     .hint{
       font-size: 12px;
@@ -554,22 +644,28 @@
 
         <div class="field">
           <div class="label">Brand</div>
-          <div class="control">
+          <div class="control select">
             <select id="brand"></select>
           </div>
         </div>
 
         <div class="field">
           <div class="label">Product group</div>
-          <div class="control">
+          <div class="control select">
             <select id="group"></select>
           </div>
         </div>
 
         <div class="field">
-          <div class="label">Type</div>
-          <div class="control">
+          <div class="label">Product type</div>
+          <div class="control select">
             <select id="type"></select>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Video type</div>
+          <div class="control select">
+            <select id="videoType"></select>
           </div>
         </div>
         <div class="field">
@@ -623,38 +719,38 @@
 <script>
 
 const VIDEO_SEED_TSV = `
-Timken\thttps://www.youtube.com/watch?v=_xrns4-fYN0&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=2&pp=iAQB\tInstalling Timken® Quick Fit Split Cylindrical Roller Bearing Housed Unit (mounted bearing)\tMounted Bearings (Cylindrical)
+Timken\thttps://www.youtube.com/watch?v=_xrns4-fYN0&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=2&pp=iAQB\tInstalling Timken® Quick Fit Split Cylindrical Roller Bearing Housed Unit (mounted bearing)\tBearings / Mounted Bearings-Installation
 Timken\thttps://www.youtube.com/watch?v=81zHRycNa8s&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=3&pp=iAQB\tTimken Tricks of the Trade: Trailer Wheel Bearing Maintenance\tBearings / Wheel End Bearings-Maintenance
 Timken\thttps://www.youtube.com/watch?v=hE6Zmq4IeN0&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=4&pp=iAQB\tMeasuring the Bench Bearing Setting in a TDO Two-Row Tapered Roller Bearing\tBearings / Tapered Roller Bearings
-Timken\thttps://www.youtube.com/watch?v=XSwpMa2I6Hk&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=5&pp=iAQB\tSpherical Roller Bearing Solid Block Housed Unit with a Double V-Locking Collar\tMounted Bearings (Spherical)
+Timken\thttps://www.youtube.com/watch?v=XSwpMa2I6Hk&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=5&pp=iAQB\tSpherical Roller Bearing Solid Block Housed Unit with a Double V-Locking Collar\tBearings / Mounted Bearings-Installation
 Timken\thttps://www.youtube.com/watch?v=BnjrihGRtUE&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=6&pp=iAQB\tGearbox Setting: Push-Pull Oscillate Method\tGearbox / Installation
 Timken\thttps://www.youtube.com/watch?v=JXZ_lEySNDM&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=9&pp=iAQB0gcJCU0KAYcqIYzv\tTimken Tricks of the Trade - Finding Wheel Hub Torque Specs\tBearings / Wheel End Bearings
 Timken\thttps://www.youtube.com/watch?v=R8e1iSD7g_c&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=11&pp=iAQB\tRepairing Insert Unit for Truck Wheel Hubs\tBearings / Wheel End Bearings-Repair
 Timken\thttps://www.youtube.com/watch?v=2Dgjkd8IxXI&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=12&pp=iAQB\tTimken Tricks of the Trade: Removing a 2-Piece Seal Wear Ring\tSeals / Wear Rings
 Timken\thttps://www.youtube.com/watch?v=HEK6h9jRTq8&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=13&pp=iAQB0gcJCU0KAYcqIYzv\tTimken Tricks of the Trade: Wheel End Bearing Removal Tips\tBearings / Wheel End Bearings-Installation
-Timken\thttps://www.youtube.com/watch?v=php5-V7TS4Q&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=14&pp=iAQB0gcJCU0KAYcqIYzv\tTimken® SAF Split Pillow Block Housed Unit Installation\tMounted Bearings (Split Housed)
-Timken\thttps://www.youtube.com/watch?v=uKf_92RXz_0&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=15&pp=iAQB0gcJCU0KAYcqIYzv\tHow to: Remove and Install a Bearing with Timken Shaft Guarding Technology for Setscrew Units\tMounted Bearings
+Timken\thttps://www.youtube.com/watch?v=php5-V7TS4Q&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=14&pp=iAQB0gcJCU0KAYcqIYzv\tTimken® SAF Split Pillow Block Housed Unit Installation\tBearings / Mounted Bearings-Installation
+Timken\thttps://www.youtube.com/watch?v=uKf_92RXz_0&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=15&pp=iAQB0gcJCU0KAYcqIYzv\tHow to: Remove and Install a Bearing with Timken Shaft Guarding Technology for Setscrew Units\tBearings / Mounted Bearings-Installation
 Timken\thttps://www.youtube.com/watch?v=Vtd2YbbeZqg&list=PLk1QHnAEhx5-wPVsNCplX0EZ7_xodwUg7&index=17&pp=iAQB\tHow to: Remove & Install A Truck Hub Bearing A\tBearings / Wheel End Bearings-Installation
 Timken\thttps://youtu.be/0RqlrnoiqnY?si=vlQfnu7cZ-Wyeysj\tProper Tapered Roller Bearing Installation in the Hub Assembly\tBearings / Wheel End Bearings
 Timken\thttps://youtu.be/DHwYYIx3H9g?si=_jv3n5hmsNL43MaG\tSuper Duty Hub Assembly\tWheel Hub / Assembly
 Timken\thttps://www.youtube.com/watch?v=IpdghLj6AhE&list=PLk1QHnAEhx5-ePg9evWOKAOH9PSxs28-g&index=1&pp=iAQB0gcJCU0KAYcqIYzv\tHow to: Check a wheel hub bearing assembly\tWheel Hub / Assembly
 Timken\thttps://www.youtube.com/watch?v=hVuReXrZ8Mg&list=PLk1QHnAEhx5-ePg9evWOKAOH9PSxs28-g&index=3&pp=iAQB\tBearing Damage Analysis for Tapered Roller Bearings\tTapered Roller Bearings
 
-NTN\thttps://www.youtube.com/watch?v=MBBgMdcRLPg\tNTN Insider- Lubricating a SAF Style Bearing During Initial Installation\tMounted Bearings (Split Housed)
-NTN\thttps://www.youtube.com/watch?v=bDeOSI4aDGo\tNTN Insider- Installing a Set Screw Locking Sentinel Series Bearing Unit\tMounted Bearings
-NTN\thttps://www.youtube.com/watch?v=maL2-dhsZt4&pp=0gcJCU0KAYcqIYzv\tNTN Insider- Solid Housed SPAW Mounted Bearing Unit Install\tMounted Bearings (Spherical)
+NTN\thttps://www.youtube.com/watch?v=MBBgMdcRLPg\tNTN Insider- Lubricating a SAF Style Bearing During Initial Installation\tBearings / Mounted Bearings-Installation
+NTN\thttps://www.youtube.com/watch?v=bDeOSI4aDGo\tNTN Insider- Installing a Set Screw Locking Sentinel Series Bearing Unit\tBearings / Mounted Bearings-Installation
+NTN\thttps://www.youtube.com/watch?v=maL2-dhsZt4&pp=0gcJCU0KAYcqIYzv\tNTN Insider- Solid Housed SPAW Mounted Bearing Unit Install\tBearings / Mounted Bearings-Installation
 NTN\thttps://www.youtube.com/watch?v=zWd76xUV0ak\tNTN ULTAGE Spherical Roller Bearings Introduction\tBearings / Spherical Roller Bearings
 NTN\thttps://youtu.be/mzODa22aGo0?si=uA4X05pAW33my8q\tHeavy Duty Wheel Bearing Installation and Adjustment - Bower Heavy Duty Bearings by NTN\tBearings / Wheel End Bearings
 
 BCA\thttps://www.youtube.com/watch?v=JpRcc_56JPs&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=1&pp=iAQB\tInstallation of a Gen 3 Wheel Hub Assembly\tWheel Hub / Assembly
 BCA\thttps://www.youtube.com/watch?v=mDKZ_--O3qk&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=2&pp=iAQB\tInstallation of Non-Driven, Gen 2 Wheel Hub Assembly\tWheel Hub / Assembly
 BCA\thttps://www.youtube.com/watch?v=OT8EAQ74p-0&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=3&pp=iAQB0gcJCU0KAYcqIYzv\tTapered Roller Bearing Tech Tips\tBearings / Tapered Roller Bearings
-BCA\thttps://www.youtube.com/watch?v=J7yiLrjzha4&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=4&pp=iAQB\tProfessional Tips for Efficient Gen 1 Wheel Bearing Replacement\tBearings / Wheel Bearings-Gen 1
+BCA\thttps://www.youtube.com/watch?v=J7yiLrjzha4&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=4&pp=iAQB\tProfessional Tips for Efficient Gen 1 Wheel Bearing Replacement\tBearings / Wheel Bearings
 BCA\thttps://www.youtube.com/watch?v=bxGdwK2iKrQ&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=5&pp=iAQB\tChapter 3 of 3: Wheel Hub Bearing Removal and Replacement\tBearings / Wheel Bearings
-BCA\thttps://www.youtube.com/watch?v=ipUebRtip0A&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=6&pp=iAQB0gcJCU0KAYcqIYzv\tNeed to Know Tips for Replacing Gen 1 Wheel Bearings\tBearings / Wheel Bearings-Gen1
-BCA\thttps://www.youtube.com/watch?v=6dnp9vBr554&list=PLC0Yx7rrtEFTt24wYXFhAYtXNfL8rPfHe&index=1&pp=iAQB0gcJCU0KAYcqIYzv\tUnderstanding Electric & Hybrid Vehicle Wheel Bearings\tBearings / Wheel Bearings-EV/Hybrid
-BCA\thttps://www.youtube.com/watch?v=g8MeEFbNIb4&list=PLC0Yx7rrtEFTt24wYXFhAYtXNfL8rPfHe&index=2&pp=iAQB\tWhat Do You Need to Know About Tesla Wheel Bearing Replacement?\tBearings / Wheel Bearings-EV/Tesla
-BCA\thttps://www.youtube.com/watch?v=IMMRANQI7qo&list=PLC0Yx7rrtEFTt24wYXFhAYtXNfL8rPfHe&index=3&pp=iAQB\tDebunking Hybrid and Electric Vehicle Wheel Bearing Myths\tBearings / Wheel Bearings-EV/Hybrid
+BCA\thttps://www.youtube.com/watch?v=ipUebRtip0A&list=PLC0Yx7rrtEFTaICnFFd_oHPG0aKoHnBBJ&index=6&pp=iAQB0gcJCU0KAYcqIYzv\tNeed to Know Tips for Replacing Gen 1 Wheel Bearings\tBearings / Wheel Bearings
+BCA\thttps://www.youtube.com/watch?v=6dnp9vBr554&list=PLC0Yx7rrtEFTt24wYXFhAYtXNfL8rPfHe&index=1&pp=iAQB0gcJCU0KAYcqIYzv\tUnderstanding Electric & Hybrid Vehicle Wheel Bearings\tBearings / Wheel Bearings
+BCA\thttps://www.youtube.com/watch?v=g8MeEFbNIb4&list=PLC0Yx7rrtEFTt24wYXFhAYtXNfL8rPfHe&index=2&pp=iAQB\tWhat Do You Need to Know About Tesla Wheel Bearing Replacement?\tBearings / Wheel Bearings
+BCA\thttps://www.youtube.com/watch?v=IMMRANQI7qo&list=PLC0Yx7rrtEFTt24wYXFhAYtXNfL8rPfHe&index=3&pp=iAQB\tDebunking Hybrid and Electric Vehicle Wheel Bearing Myths\tBearings / Wheel Bearings
 BCA\thttps://www.youtube.com/watch?v=iKsZMFpYUGU&list=PLC0Yx7rrtEFQ0LaOW7u1CnpL8RyV4LKmH&index=1&pp=iAQB\tCan Hitting a Curb or Pothole Damage a Wheel Bearing?\tBearings / Wheel Bearings-Diagnostics
 BCA\thttps://www.youtube.com/watch?v=5x93107bLPY&list=PLC0Yx7rrtEFQ0LaOW7u1CnpL8RyV4LKmH&index=2&pp=iAQB\tAre You Getting Customer Complaints About Clicking Noises After Replacing a Wheel Hub?\tWheel Hub / Diagnostics
 BCA\thttps://www.youtube.com/watch?v=Xpl1489lDZ4&list=PLC0Yx7rrtEFQ0LaOW7u1CnpL8RyV4LKmH&index=3&pp=iAQB\tChapter 2 of 3: Wheel Bearing Diagnostics\tBearings / Wheel Bearings-Diagnostics
@@ -665,42 +761,42 @@ BCA\thttps://www.youtube.com/watch?v=URRAn-6qA80&list=PLC0Yx7rrtEFQ0LaOW7u1CnpL8
 BCA\thttps://www.youtube.com/watch?v=XljIpcHGnaw&list=PLC0Yx7rrtEFQ0LaOW7u1CnpL8RyV4LKmH&index=8&pp=iAQB\tMeasuring Flange Runout\tWheel Hub / Diagnostics
 BCA\thttps://www.youtube.com/watch?v=21vMTQfQ0Rs&list=PLC0Yx7rrtEFQ0LaOW7u1CnpL8RyV4LKmH&index=9&pp=iAQB\tCan a Damaged Knuckle Result in Knuckle Bore Distortion?\tWheel Hub / Diagnostics
 BCA\thttps://www.youtube.com/watch?v=nFKneZOxE1o&list=PLC0Yx7rrtEFQ0LaOW7u1CnpL8RyV4LKmH&index=10&pp=iAQB\tWheel Hub Diagnosis\tWheel Hub / Diagnostics
-BCA\thttps://www.youtube.com/watch?v=Dz6JAByapos&list=PLC0Yx7rrtEFTWaA2NDXDqDylGqaUBcF1M&index=2&pp=iAQB0gcJCU0KAYcqIYzv\tThe Importance of Proper Bearing Preload During Installation\tBearings / Installation
+BCA\thttps://www.youtube.com/watch?v=Dz6JAByapos&list=PLC0Yx7rrtEFTWaA2NDXDqDylGqaUBcF1M&index=2&pp=iAQB0gcJCU0KAYcqIYzv\tThe Importance of Proper Bearing Preload During Installation\tBearings / General-Installation
 BCA\thttps://www.youtube.com/watch?v=_mYJpBhrfpE&list=PLC0Yx7rrtEFTWaA2NDXDqDylGqaUBcF1M&index=4&pp=iAQB\tTorque Wrench Tech Tips for Wheel Bearing Installation\tBearings / Wheel Bearings
-BCA\thttps://www.youtube.com/watch?v=iQpgH7K2_t8&list=PLC0Yx7rrtEFTWaA2NDXDqDylGqaUBcF1M&index=5&pp=iAQB\tWhy You Should Always Look Up the Manufacturer Specs to Set the Preload on a Tapered Roller Bearing\tTapered Roller Bearings (Preload)
-BCA\thttps://www.youtube.com/watch?v=Q8jSrkARuFM&list=PLC0Yx7rrtEFTWaA2NDXDqDylGqaUBcF1M&index=6&pp=iAQB\tDon’t Overlook the Importance of the Fasteners When Installing Wheel Bearings\tBearings / Wheel Bearings
-BCA\thttps://www.youtube.com/watch?v=vWjH_cfmSLU&list=PLC0Yx7rrtEFSHnaw77DpDVS3CgMzoazUd&index=8&pp=iAQB\tCan a Bad Wheel Bearing Cause Issues with TPMS, ABS, ESC, and AWD Systems?\tBearings / Wheel Bearings-Installation
+BCA\thttps://www.youtube.com/watch?v=iQpgH7K2_t8&list=PLC0Yx7rrtEFTWaA2NDXDqDylGqaUBcF1M&index=5&pp=iAQB\tWhy You Should Always Look Up the Manufacturer Specs to Set the Preload on a Tapered Roller Bearing\tBearings / Tapered Roller Bearings
+BCA\thttps://www.youtube.com/watch?v=Q8jSrkARuFM&list=PLC0Yx7rrtEFTWaA2NDXDqDylGqaUBcF1M&index=6&pp=iAQB\tDon’t Overlook the Importance of the Fasteners When Installing Wheel Bearings\tBearings / Wheel Bearings-Installation
+BCA\thttps://www.youtube.com/watch?v=vWjH_cfmSLU&list=PLC0Yx7rrtEFSHnaw77DpDVS3CgMzoazUd&index=8&pp=iAQB\tCan a Bad Wheel Bearing Cause Issues with TPMS, ABS, ESC, and AWD Systems?\tBearings / Wheel Bearings
 
 
 Bower\thttps://www.youtube.com/watch?v=4i02GBqxNP8&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=2&pp=iAQB\tCan You Use a Conventional Bearing Set with Wheel End Spacer Kit?\tBearings / Wheel End Bearings
-Bower\thttps://www.youtube.com/watch?v=NLIR74EKn9I&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=3&pp=iAQB\tCase Hardened vs. Through Hardened Bearings\tBearings (Metallurgy)
-Bower\thttps://www.youtube.com/watch?v=m4JxPaY9oLk&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=4&pp=iAQB\tTight, But Not Too Tight – The Importance of Proper Heavy Duty Wheel Bearing Adjustment\tBearings / Wheel Bearings
-Bower\thttps://www.youtube.com/watch?v=Sh0nWkMXgA4&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=5&pp=iAQB0gcJCU0KAYcqIYzv\tRemoving and Installing Heavy Duty Wheel Bearings in Steel and Aluminum Hubs\tBearings / Wheel Bearings
+Bower\thttps://www.youtube.com/watch?v=NLIR74EKn9I&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=3&pp=iAQB\tCase Hardened vs. Through Hardened Bearings\tBearings / General-Metallurgy
+Bower\thttps://www.youtube.com/watch?v=m4JxPaY9oLk&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=4&pp=iAQB\tTight, But Not Too Tight – The Importance of Proper Heavy Duty Wheel Bearing Adjustment\tBearings / Wheel Bearings-Installation
+Bower\thttps://www.youtube.com/watch?v=Sh0nWkMXgA4&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=5&pp=iAQB0gcJCU0KAYcqIYzv\tRemoving and Installing Heavy Duty Wheel Bearings in Steel and Aluminum Hubs\tBearings / Wheel Bearings-Installation
 Bower\thttps://www.youtube.com/watch?v=0qj-7v8Uszg&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=6&pp=iAQB0gcJCU0KAYcqIYzv\tDifferences Between Standard Temp & High Temp Clutch Pilot Bearings\tBearings / Clutch Bearings-General
 Bower\thttps://www.youtube.com/watch?v=iJ21S5jxSHM&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=7&pp=iAQB\tHeavy Duty Wheel-End Spacer Kit Installation Tech Tips\tBearings / Wheel End Bearings-Installation
-Bower\thttps://www.youtube.com/watch?v=7SlozlFfU54&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=8&pp=iAQB\tUnboxing A Premium Bower Bearings Heavy Duty Differential Rebuild Kit\tDifferential / Rebuild Kits
+Bower\thttps://www.youtube.com/watch?v=7SlozlFfU54&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=8&pp=iAQB\tUnboxing A Premium Bower Bearings Heavy Duty Differential Rebuild Kit\tDifferential / Kits
 Bower\thttps://www.youtube.com/watch?v=Q8srVJLQ6AI&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=9&pp=iAQB\tHeavy Duty Bearing Installation and Adjustment - Frequently Asked Questions from the Field\tBearings / Wheel Bearings
 Bower\thttps://www.youtube.com/watch?v=zfBQCKcoO8Q&list=PLKJF_QrBohwJHFrutagpYYaWYBxanKqkB&index=10&pp=iAQB\tHeavy Duty Clutch Bearing Diagnosis – What to Look for Before a Bearing Fails\tBearings / Clutch Bearings-Diagnostics
 Bower\thttps://www.youtube.com/watch?v=lbZnnQa3IA8&list=PLKJF_QrBohwJAB1yumyt79or4GUvVLuyQ&index=1&pp=iAQB\tInstalling Heavy Duty Wheel Bearings - Bower Heavy Duty Bearings Featured on Motorhead Garage (2011)\tBearings / Wheel Bearings
 Bower\thttps://www.youtube.com/watch?v=Du1pqks-YEQ&list=PLKJF_QrBohwJAB1yumyt79or4GUvVLuyQ&index=2&pp=iAQB\tHeavy Duty Differential Rebuild - Bower Heavy Duty Bearings Featured on Motorhead Garage (2011)\tDifferential / Rebuild Kits
 
 Dodge\thttps://www.youtube.com/watch?v=rxRtboY1WW4\tDodge QD bushing installation\tBushings / QD Installation
-Dodge\thttps://www.youtube.com/watch?v=GEZ0CKCVNY8\tDodge Taper Lock bushing installation\tBushings / Taper Lock Installation
-Dodge\thttps://www.youtube.com/watch?v=-VElROAZav0&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=1&pp=iAQB\tDodge Raptor Coupling: Hardy Pro Air customer story | Dodge Industrial\tCouplings (Raptor)
-Dodge\thttps://www.youtube.com/watch?v=2n6wSHgDJmk&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=2&pp=iAQB\tInstallation of Dodge TAII and MTAII Screw Conveyor Adapter and Drive Shaft\tConveyors (Adapters / Drive Shafts)
-Dodge\thttps://www.youtube.com/watch?v=7_irPwkdl-E&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=4&pp=iAQB\tInstallation of Dodge MTAII Position D Breather Kit\tGearbox / Breather Kit
-Dodge\thttps://www.youtube.com/watch?v=8FBcrmxwd_k&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=5&pp=iAQB\tDodge set screw ball bearing installation | Dodge Industrial\tMounted Bearings
-Dodge\thttps://www.youtube.com/watch?v=9DbDuoYaKH8&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=6&pp=iAQB\tDodge belt drive tensioning force deflection method | Dodge Industrial\tBelts (Installation)
-Dodge\thttps://www.youtube.com/watch?v=GEZ0CKCVNY8&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=7&pp=iAQB\tDodge Taper Lock bushing installation | Dodge Industrial\tBushings / Taper Lock Installation
-Dodge\thttps://www.youtube.com/watch?v=HuBTbT33eSc&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=8&pp=iAQB\tDodge Imperial Bearings: Easy installation and removal | Dodge Industrial\tMounted Bearings (Spherical)
-Dodge\thttps://www.youtube.com/watch?v=ImOvio3TKiY&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=9&pp=iAQB\tDodge Power Transmission Components Shaft Preparation Module | Dodge Industrial\tShaft / Prep
+Dodge\thttps://www.youtube.com/watch?v=GEZ0CKCVNY8\tDodge Taper Lock bushing installation\tBushings / Taper Lock-Installation
+Dodge\thttps://www.youtube.com/watch?v=-VElROAZav0&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=1&pp=iAQB\tDodge Raptor Coupling: Hardy Pro Air customer story | Dodge Industrial\tCouplings / Elastomeric
+Dodge\thttps://www.youtube.com/watch?v=2n6wSHgDJmk&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=2&pp=iAQB\tInstallation of Dodge TAII and MTAII Screw Conveyor Adapter and Drive Shaft\tConveyors / Adapters-Installation
+Dodge\thttps://www.youtube.com/watch?v=7_irPwkdl-E&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=4&pp=iAQB\tInstallation of Dodge MTAII Position D Breather Kit\tGearbox / Breather Kit-Installation
+Dodge\thttps://www.youtube.com/watch?v=8FBcrmxwd_k&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=5&pp=iAQB\tDodge set screw ball bearing installation | Dodge Industrial\tBearings / Mounted Bearings-Installation
+Dodge\thttps://www.youtube.com/watch?v=9DbDuoYaKH8&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=6&pp=iAQB\tDodge belt drive tensioning force deflection method | Dodge Industrial\tBelts / V-Belt-Installation
+Dodge\thttps://www.youtube.com/watch?v=GEZ0CKCVNY8&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=7&pp=iAQB\tDodge Taper Lock bushing installation | Dodge Industrial\tBushings / Taper Lock-Installation
+Dodge\thttps://www.youtube.com/watch?v=HuBTbT33eSc&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=8&pp=iAQB\tDodge Imperial Bearings: Easy installation and removal | Dodge Industrial\tBearings / Mounted Bearings-Installation
+Dodge\thttps://www.youtube.com/watch?v=ImOvio3TKiY&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=9&pp=iAQB\tDodge Power Transmission Components Shaft Preparation Module | Dodge Industrial\tShafts / Prep
 Dodge\thttps://www.youtube.com/watch?v=JHHTx_DjQRc&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=10&pp=iAQB\tDodge replaceable conveyor pulley lagging | Dodge Industrial\tConveyors / Lagging
-Dodge\thttps://www.youtube.com/watch?v=K3lXtp7AqKg&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=11&pp=iAQB\tDodge® Mounted Bearings Local Manufacturing | Dodge Industrial\tMounted Bearings
-Dodge\thttps://www.youtube.com/watch?v=KD2QDMmvf-M&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=12&pp=iAQB\tDodge belt drive alignment and installation | Dodge Industrial\tBelts (Installation)
-Dodge\thttps://www.youtube.com/watch?v=OQgqrJU_OcA&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=13&pp=iAQB\tInstallation of Dodge SCXT Screw Conveyor Adapter and Drive Shaft\tConveyors (Adapters / Drive Shafts)
-Dodge\thttps://www.youtube.com/watch?v=PC9o79fdAfM&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=14&pp=iAQB\tInstallation of Dodge Twin-Tapered Bushing in a Torque-Arm Reducer\tGearbox / Twin-Tapered Bushings
-Dodge\thttps://www.youtube.com/watch?v=Re6FWvPRVu4&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=15&pp=iAQB\tDodge Hydraulic ISAF mounted spherical roller bearing installation | Dodge Industrial\tMounted Bearings (Spherical Roller)
-Dodge\thttps://www.youtube.com/watch?v=W59iYvsKFlI&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=16&pp=iAQB\tTXT Original Backstop Installation | Dodge® Industrial\tGearbox / Backstops
+Dodge\thttps://www.youtube.com/watch?v=K3lXtp7AqKg&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=11&pp=iAQB\tDodge® Mounted Bearings Local Manufacturing | Dodge Industrial\tBearings / Mounted Bearings
+Dodge\thttps://www.youtube.com/watch?v=KD2QDMmvf-M&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=12&pp=iAQB\tDodge belt drive alignment and installation | Dodge Industrial\tBelts / V-Belt-Installation
+Dodge\thttps://www.youtube.com/watch?v=OQgqrJU_OcA&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=13&pp=iAQB\tInstallation of Dodge SCXT Screw Conveyor Adapter and Drive Shaft\tConveyors / Adapters-Installation
+Dodge\thttps://www.youtube.com/watch?v=PC9o79fdAfM&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=14&pp=iAQB\tInstallation of Dodge Twin-Tapered Bushing in a Torque-Arm Reducer\tGearbox / Twin-Tapered Bushings-Installation
+Dodge\thttps://www.youtube.com/watch?v=Re6FWvPRVu4&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=15&pp=iAQB\tDodge Hydraulic ISAF mounted spherical roller bearing installation | Dodge Industrial\tBearings / Mounted Bearings-Installation
+Dodge\thttps://www.youtube.com/watch?v=W59iYvsKFlI&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=16&pp=iAQB\tTXT Original Backstop Installation | Dodge® Industrial\tGearbox / Backstops-Installation
 Dodge\thttps://www.youtube.com/watch?v=Z7WDfgqFiDU&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=17&pp=iAQB\tGet Tigear Tough: Proven Toughness (Video 3) | Dodge Industrial, Inc.\tGearbox (Tigear)
 Dodge\thttps://www.youtube.com/watch?v=iTJjnE5kgFs&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=18&pp=iAQB\tDodge Raptor Coupling: Element Installation and Replacement Module | Dodge Industrial\tCouplings (Raptor)
 Dodge\thttps://www.youtube.com/watch?v=kFfzox4Dgtg&list=PL7BaGpuSJhEHGh3pJBByxTlxLxau59U2A&index=19&pp=iAQB\tDodge belt drive tensioning sonic tensioning method | Dodge Industrial\tBelts (Installation)
@@ -725,20 +821,20 @@ Martin\thttps://vimeo.com/834805691\tMartin Drag Conveyor: Standard Sprocket vs 
 Martin\thttps://vimeo.com/929901786\tUnderstanding Chain Elongation\tSprockets / Diagnosis
 
 Gates\thttps://www.youtube.com/watch?v=8HuOlRlaYC4&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=1&pp=iAQB\tStrobe Tachometer\tTools (Tachometer)
-Gates\thttps://www.youtube.com/watch?v=jV6ko-kFuo4&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=2&pp=iAQB\tTaper Lock Bushing Installation\tBushings /  Taper Lock Installation
+Gates\thttps://www.youtube.com/watch?v=jV6ko-kFuo4&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=2&pp=iAQB\tTaper Lock Bushing Installation\tBushings /  Taper Lock-Installation
 Gates\thttps://www.youtube.com/watch?v=tfv-6pXESHA&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=3&pp=iAQB0gcJCU0KAYcqIYzv\tSonic Tension Meter 507C\tTools / Tension Meters
-Gates\thttps://www.youtube.com/watch?v=JRGkh5sUQXE&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=4&pp=iAQB\tGates Force / Deflection Gauges\tTools / Guages-Force & Deflection
-Gates\thttps://www.youtube.com/watch?v=NHR50TIU-zA&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=5&pp=iAQB0gcJCU0KAYcqIYzv\tV-Belt Sheave Gauge\tTools (Sheave Gauge)
+Gates\thttps://www.youtube.com/watch?v=JRGkh5sUQXE&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=4&pp=iAQB\tGates Force / Deflection Gauges\tTools / Guages
+Gates\thttps://www.youtube.com/watch?v=NHR50TIU-zA&list=PLxlyzbyFfwGm8yKM60JV5-unQMyTnTkTG&index=5&pp=iAQB0gcJCU0KAYcqIYzv\tV-Belt Sheave Gauge\tTools / Gauges
 Gates\thttps://www.youtube.com/watch?v=oLOMdzWvg7w\tSonic Tension Meter Troubleshooting\tTools / Tension Meters
 Gates\thttps://www.youtube.com/watch?v=Y1prMSy2JjA\tMulti-Ribbed Belt and Pulley Diagnostics\tBelts (Diagnostics)
-Gates\thttps://www.youtube.com/watch?v=10HR-UyVEZE\tHow to Install Gates T43219 Kit: Complete Installation Guide to Avoid Common Mistakes\tBelts (Installation)
-Gates\thttps://www.youtube.com/watch?v=Eg78xFUZHEo\tHow to Install the Stretch Fit™ Belt: Tools, Tips & Tricks for Success\tBelts (Installation)
-Gates\thttps://youtu.be/UvdF2C0ZPf4\tBELT-IN-OIL installation\tBelts / Installation
+Gates\thttps://www.youtube.com/watch?v=10HR-UyVEZE\tHow to Install Gates T43219 Kit: Complete Installation Guide to Avoid Common Mistakes\tBelts / V-Belt-Installation
+Gates\thttps://www.youtube.com/watch?v=Eg78xFUZHEo\tHow to Install the Stretch Fit™ Belt: Tools, Tips & Tricks for Success\tBelts / V-Belt-Installation
+Gates\thttps://youtu.be/UvdF2C0ZPf4\tBELT-IN-OIL installation\tBelts / V-Belt-Installation
 
-Bestorq\thttps://youtu.be/bsGDUCFiepU?si=KPfkgZw00tB3yW8J\tNEW Bestorq Laser Alignment Tool - How to Video\tTools (Laser Alignment)
-Bestorq\thttps://youtu.be/R-hQtkaFlsQ?si=xwcFpQVqnd9KmFZa\tBestorq Laser Alignment Tool\tTools (Laser Alignment)
-Bestorq\thttps://youtu.be/pfXNbsQ31C8?si=u0b7rjYNwxhub5CD\tTension Stick\tTools / Belt Tensioner
-Bestorq\thttps://youtu.be/dGc3LofJI4E?si=Znul8zqPwisGK590\tProper V-Belt Tensioning\tBelts (Installation)
+Bestorq\thttps://youtu.be/bsGDUCFiepU?si=KPfkgZw00tB3yW8J\tNEW Bestorq Laser Alignment Tool - How to Video\tTools / Alignment
+Bestorq\thttps://youtu.be/R-hQtkaFlsQ?si=xwcFpQVqnd9KmFZa\tBestorq Laser Alignment Tool\tTools / Laser Alignment
+Bestorq\thttps://youtu.be/pfXNbsQ31C8?si=u0b7rjYNwxhub5CD\tTension Stick\tTools / Tensioners
+Bestorq\thttps://youtu.be/dGc3LofJI4E?si=Znul8zqPwisGK590\tProper V-Belt Tensioning\tBelts / V-Belt-Installation
 
 U.S. Seal Mfg.\thttps://www.youtube.com/watch?v=TbEq7kSS8_8\tHow To Select The Right Seal\tSeals
 
@@ -750,9 +846,9 @@ SKF (CR Seals)\thttps://www.youtube.com/watch?v=v-Cp0xKPb2s&list=PL1np9Eh1jw1kfi
 SKF (CR Seals)\thttps://www.youtube.com/watch?v=09LiVbqL6ss&list=PL1np9Eh1jw1kfiguOO1CsisUj5hOcrKD7&index=61&pp=iAQB\tSKF Speedi-Sleeve - the fast and easy solution for worn shafts\tShaft / Repair
 SKF (CR Seals)\thttps://www.youtube.com/watch?v=NhPjuI_9r2E&list=PL1np9Eh1jw1kfiguOO1CsisUj5hOcrKD7&index=62&pp=iAQB0gcJCU0KAYcqIYzv\tBasics of Contact Seals\tSeals (Basics)
 
-Bando\thttps://www.youtube.com/watch?v=HoYgm8HY4HY&list=PLa6WxTRXRthOjtcUlrzcxiNeP2tT7jjky&index=3\tSerpentine Belt Replacement\tBelts (Installation)
-Bando\thttps://youtu.be/xVup2onsVyk?si=rvfELT4IqBznWDib\tBando History & Belt Maintenance\tBelts (Maintenance)
-Bando\thttps://youtu.be/L_Xpz7VMXMA?si=k0eHu0q6ciOs89O8\tBando Tension Master\tTools / Belt Tensioner
+Bando\thttps://www.youtube.com/watch?v=HoYgm8HY4HY&list=PLa6WxTRXRthOjtcUlrzcxiNeP2tT7jjky&index=3\tSerpentine Belt Replacement\tBelts / V-Belt-Installation
+Bando\thttps://youtu.be/xVup2onsVyk?si=rvfELT4IqBznWDib\tBando History & Belt Maintenance\tBelts / V-Belt-Maintenance
+Bando\thttps://youtu.be/L_Xpz7VMXMA?si=k0eHu0q6ciOs89O8\tBando Tension Master\tTools / Tensioners
 
 AIRpipe USA\thttps://www.youtube.com/watch?v=0HCF2V1_AhA&list=PLYP9i0Ifm-WC_cSvdUDDUJU2g1sah2lxW&index=1&pp=iAQB\tAIRpipe Small Diameter Assembly\tCompressed Air Piping
 AIRpipe USA\thttps://www.youtube.com/watch?v=gSvTTxL0Qk8&list=PLYP9i0Ifm-WC_cSvdUDDUJU2g1sah2lxW&index=2&pp=iAQB\tHow to Transition From Any Pipe System to AIRpipe\tCompressed Air Piping
@@ -785,48 +881,48 @@ Lovejoy\thttps://www.youtube.com/watch?v=2xgW-NEXYVg&list=PLE688A5BF0266BC19&ind
 Lovejoy\thttps://www.youtube.com/watch?v=v1vGIRiYH3A&list=PLE688A5BF0266BC19&index=22&pp=iAQB\tLovejoy S-Flex Endurance Full Spacer Style Coupling Installation Video\tCouplings (Elastomeric)
 Lovejoy\thttps://www.youtube.com/watch?v=oUiYpCeoRIc&list=PLE688A5BF0266BC19&index=23&pp=iAQB\tLovejoy S-Flex Endurance Half Spacer Style Coupling Installation Video\tCouplings (Elastomeric)
 Lovejoy\thttps://www.youtube.com/watch?v=JzKDZIDdKRc&list=PLE688A5BF0266BC19&index=24&pp=iAQB0gcJCU0KAYcqIYzv\tQUICK FLEX COUPLINGS INSTALLATION DEMONSTRATION VIDEO by LOVEJOY\tCouplings (Elastomeric)
-Lovejoy\thttps://www.youtube.com/watch?v=PfLa3MASMcY&list=PLE688A5BF0266BC19&index=25&pp=iAQB\tLovejoy QUICK FLEX Couplings Insert Replacement Demo\tCouplings (Elastomeric)
+Lovejoy\thttps://www.youtube.com/watch?v=PfLa3MASMcY&list=PLE688A5BF0266BC19&index=25&pp=iAQB\tLovejoy QUICK FLEX Couplings Insert Replacement Demo\tCouplings / Elastomeric
 Lovejoy\thttps://www.youtube.com/watch?v=1WxFajLmRd0&list=PLE688A5BF0266BC19&index=26&pp=iAQB\tThe Curtis Universal TakeApart Joint Advantage\tCouplings / Universal Joints
 
 Rexnord\thttps://www.youtube.com/watch?v=FbzTCWLKoIk\tHow to Install Rexnord MatTop & TableTop Sprockets\tConveyors / Sprocket Installation
 Rexnord\thttp//www.youtube.com/watch?v=nwcBm4ChxAw&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=1&pp=iAQB\tHow To Identify Rexnord TableTop Chain\tChain (TableTop)
-Rexnord\thttp//www.youtube.com/watch?v=OTABVP4YPRQ&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=2&pp=iAQB\tHow To Measure and Calculate Conveyor Curve Radius\tConveyors / Layout & Design
+Rexnord\thttp//www.youtube.com/watch?v=OTABVP4YPRQ&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=2&pp=iAQB\tHow To Measure and Calculate Conveyor Curve Radius\tConveyors / General-General
 Rexnord\thttp//www.youtube.com/watch?v=4FheYa_SpZE&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=3&pp=iAQB\tHow To Measure Conveyor Squareness (Shaft Alignment)\tConveyors / Alignment
 Rexnord\thttp//www.youtube.com/watch?v=FbzTCWLKoIk&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=4&pp=iAQB\tHow To Install Rexnord MatTop & TableTop Sprockets\tChain / Sprockets
-Link-Belt\thttp//www.youtube.com/watch?v=mJlk1fC4DoY&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=5&pp=iAQB\tLink-Belt 22600 Series Solid Housed Mounted Roller Bearing Installation\tMounted Bearings / Solid Housed
+Link-Belt\thttp//www.youtube.com/watch?v=mJlk1fC4DoY&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=5&pp=iAQB\tLink-Belt 22600 Series Solid Housed Mounted Roller Bearing Installation\tBearings / Mounted Bearings-Installation
 Rexnord\thttp//www.youtube.com/watch?v=ysbWPaJyMd8&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=6&pp=iAQB0gcJCU0KAYcqIYzv\tHow To Identify Rexnord FlatTop MatTop Chain\tChain (TableTop)
 Rexnord\thttp//www.youtube.com/watch?v=QnI9ygTKKAU&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=7&pp=iAQB\tHow To Assemble/Disassemble Rexnord MatTop Chain\tChain (TableTop)
 Rexnord\thttp//www.youtube.com/watch?v=YvyZeE9tZPI&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=8&pp=iAQB\tHow To Assemble/Disassemble Rexnord TableTop Chain\tChain (TableTop)
 Rexnord\thttp//www.youtube.com/watch?v=-3Muv-pfOeo&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=9&pp=iAQB\tHow To Install a Rexnord Thomas Disc Coupling\tCouplings (Disc)
 Falk\thttp//www.youtube.com/watch?v=OUX66s2cYlg&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=10&pp=iAQB\tHow To Install a Falk Steelflex Grid Coupling\tCouplings (Grid)
-Rexnord\thttp//www.youtube.com/watch?v=K713GUabA_Q&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=11&pp=iAQB\tHow To Install a Rexnord Wrapflex Elastomeric Coupling\tCouplings (Elastomeric)
+Rexnord\thttp//www.youtube.com/watch?v=K713GUabA_Q&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=11&pp=iAQB\tHow To Install a Rexnord Wrapflex Elastomeric Coupling\tCouplings / Elastomeric
 Rexnord\thttp//www.youtube.com/watch?v=DvN2HzqPVvc&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=12&pp=iAQB\tHow To Install a Rexnord Lifelign Gear Coupling\tCouplings (Gear)
 Rexnord\thttp//www.youtube.com/watch?v=P6nWfCJm6sc&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=13&pp=iAQB\tHow To Install the Rexnord Roller Upgrade System\tConveyors / Upgrades
 Rexnord\thttp//www.youtube.com/watch?v=W5eo9hmZPJs&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=14&pp=iAQB\tHow To Measure Chain Elongation for Rexnord FlatTop Chain\tChain (TableTop)
 Rexnord\thttp//www.youtube.com/watch?v=kgQ_mjWaKq8&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=15&pp=iAQB\tHow To Measure Catenary Sag for Rexnord FlatTop Chain\tChain (TableTop)
-Link-Belt\thttp//www.youtube.com/watch?v=Y0UYLZu3T3w&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=16&pp=iAQB\tHow To Install a Link-Belt SAF Style Adapter Mount Pillow Block Bearing\tMounted Bearings / SAF Adapter Mount
-Link-Belt\thttp//www.youtube.com/watch?v=tIzPhsWDLww&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=17&pp=iAQB\tHow To Install a Set Screw Mounted Industrial Bearing\tMounted Bearings / Pillow Block-Installation
-Link-Belt\thttp//www.youtube.com/watch?v=wUsufVbhOS4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=18&pp=iAQB\tHow To Install an Eccentric Cam Lock Bearing\tMounted Bearings / Eccentric Lock
-Link-Belt\thttp//www.youtube.com/watch?v=EZQ3rgv2ccU&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=19&pp=iAQB\tHow To Replace a Ball Bearing Insert\tMounted Bearings / Inserts (Ball)
-Link-Belt\thttp//www.youtube.com/watch?v=-s4E-UvEjL0&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=20&pp=iAQB\tHow To Replace a Roller Bearing Insert\tMounted Bearings / Inserts (Roller)
-Link-Belt\thttp//www.youtube.com/watch?v=Jhis_2B9SP4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=21&pp=iAQB\tHow To Replace Rex & Link-Belt Roller Bearing Seals\tMounted Bearings / Seals 
-Link-Belt\thttp//www.youtube.com/watch?v=ZRnGctS61pk&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=22&pp=iAQB\tHow To Select a Seal for a Link-Belt Ball Bearing\tMounted Bearings / Seals
-Link-Belt\thttp//www.youtube.com/watch?v=x7YkGFNLDWo&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=23&pp=iAQB\tHow To Select a Seal for Rex & Link-Belt Roller Bearings\tMounted Bearings / Seals
-Rexnord\thttp//www.youtube.com/watch?v=pWUofGfhTC4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=24&pp=iAQB\tProper Bearing Alignment — Rexnord Bearings\tMounted Bearings / Alignment
-Link-Belt\thttp//www.youtube.com/watch?v=UqK3ncamgek&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=25&pp=iAQB\tHow To Adjust Rex and Link-Belt Spherical Roller Bearing Clearance\tMounted Bearings / Spherical Roller
-Link-Belt\thttp//www.youtube.com/watch?v=2dP7crtmnus&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=26&pp=iAQB\tHow To Install the Link-Belt Centrik-Lok "CL" Ball Bearing\tMounted Bearings / Centrik-Lok
-Rexnord\thttp//www.youtube.com/watch?v=jCQsYgCQK_U&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=27&pp=iAQB\tHow To Assemble and Disassemble Rexnord's MatTop 395 Pin\tChain / TableTop
-Rexnord\thttp//www.youtube.com/watch?v=F9vwvFDm40I&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=28&pp=iAQB\tHow To Disassemble and Assemble Rexnord's 590 Series KleanTop Belt\tConveyors / Belting-KleanTop
-Rexnord\thttp//www.youtube.com/watch?v=WvlM7AqIESA&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=29&pp=iAQB\tHow To Disassemble and Assemble Rexnord's 1090 Series KleanTop Belt\tConveyors / Belting-KleanTop
-Rexnord\thttp//www.youtube.com/watch?v=aySy2ldnmNU&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=30&pp=iAQB0gcJCU0KAYcqIYzv\tHow To Assemble and Disassemble Rexnord's 2010 Series KleanTop Belt\tConveyors / Belting-KleanTop
-Rexnord\thttp//www.youtube.com/watch?v=uzFlkv1u2Rk&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=31&pp=iAQB\tHow To Assemble and Disassemble Rexnord's 1010 Series KleanTop Belt\tConveyors / Belting-KleanTop
+Link-Belt\thttp//www.youtube.com/watch?v=Y0UYLZu3T3w&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=16&pp=iAQB\tHow To Install a Link-Belt SAF Style Adapter Mount Pillow Block Bearing\tBearings / Mounted Bearings-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=tIzPhsWDLww&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=17&pp=iAQB\tHow To Install a Set Screw Mounted Industrial Bearing\tBearings / Mounted Bearings-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=wUsufVbhOS4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=18&pp=iAQB\tHow To Install an Eccentric Cam Lock Bearing\tBearings / Mounted Bearings-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=EZQ3rgv2ccU&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=19&pp=iAQB\tHow To Replace a Ball Bearing Insert\tBearings / Mounted Bearings-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=-s4E-UvEjL0&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=20&pp=iAQB\tHow To Replace a Roller Bearing Insert\tBearings / Mounted Bearings-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=Jhis_2B9SP4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=21&pp=iAQB\tHow To Replace Rex & Link-Belt Roller Bearing Seals\tBearings / Seals 
+Link-Belt\thttp//www.youtube.com/watch?v=ZRnGctS61pk&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=22&pp=iAQB\tHow To Select a Seal for a Link-Belt Ball Bearing\tBearings / Seals
+Link-Belt\thttp//www.youtube.com/watch?v=x7YkGFNLDWo&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=23&pp=iAQB\tHow To Select a Seal for Rex & Link-Belt Roller Bearings\tBearings / Seals
+Rexnord\thttp//www.youtube.com/watch?v=pWUofGfhTC4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=24&pp=iAQB\tProper Bearing Alignment — Rexnord Bearings\tBearings / Mounted Bearings-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=UqK3ncamgek&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=25&pp=iAQB\tHow To Adjust Rex and Link-Belt Spherical Roller Bearing Clearance\tBearings / Mounted Bearings-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=2dP7crtmnus&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=26&pp=iAQB\tHow To Install the Link-Belt Centrik-Lok "CL" Ball Bearing\tBearings /Mounted Bearings-Installation
+Rexnord\thttp//www.youtube.com/watch?v=jCQsYgCQK_U&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=27&pp=iAQB\tHow To Assemble and Disassemble Rexnord's MatTop 395 Pin\tChain / TableTop-Installation
+Rexnord\thttp//www.youtube.com/watch?v=F9vwvFDm40I&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=28&pp=iAQB\tHow To Disassemble and Assemble Rexnord's 590 Series KleanTop Belt\tConveyors / Belting-Installation
+Rexnord\thttp//www.youtube.com/watch?v=WvlM7AqIESA&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=29&pp=iAQB\tHow To Disassemble and Assemble Rexnord's 1090 Series KleanTop Belt\tConveyors / Belting-Installation
+Rexnord\thttp//www.youtube.com/watch?v=aySy2ldnmNU&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=30&pp=iAQB0gcJCU0KAYcqIYzv\tHow To Assemble and Disassemble Rexnord's 2010 Series KleanTop Belt\tConveyors / Belting-Installation
+Rexnord\thttp//www.youtube.com/watch?v=uzFlkv1u2Rk&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=31&pp=iAQB\tHow To Assemble and Disassemble Rexnord's 1010 Series KleanTop Belt\tConveyors / Belting-Installation
 Rexnord\thttp//www.youtube.com/watch?v=qr0bJemWwHU&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=32&pp=iAQB\tInstalling Rexnord's Planetgear C-Face Coupler for Mercury and Mars Units\tGear Drives / Planetgear
 Rexnord\thttp//www.youtube.com/watch?v=Gw4ze66X6nM&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=33&pp=iAQB\tHow To Identify Industrial Chain in Your Applications\tChain / Identification
-Rexnord\thttp//www.youtube.com/watch?v=ZPHxtuuGMbs&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=34&pp=iAQB\tHow To Install Rexnord's Shurlok Tapered Adapter\tMounted Bearings / Tapered Adapter
-Rexnord\thttp//www.youtube.com/watch?v=DyCvo3azMGs&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=35&pp=iAQB\tRexnord Shaft Mounted Quadrive Gear Drive Installation\tGear Drives / Shaft Mounted
-Rexnord\thttp//www.youtube.com/watch?v=tcVBms4Ykio&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=38&pp=iAQB\tHow To Install Rexnord’s Omega Elastomeric Coupling\tCouplings (Elastomeric)
-Link-Belt\thttp//www.youtube.com/watch?v=Fyi5vSNcqX4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=39&pp=iAQB\tRex and Link-Belt End Cap Field Retrofit	Mounted Bearings\tMounted Bearings / End Caps
-Addax\thttp//www.youtube.com/watch?v=QOcyrT1Of7M&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=40&pp=iAQB\tPerforming General Maintenance on Addax Composite Couplings\tCouplings / Composite
+Rexnord\thttp//www.youtube.com/watch?v=ZPHxtuuGMbs&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=34&pp=iAQB\tHow To Install Rexnord's Shurlok Tapered Adapter\tBearings / Mounted Bearings-Installation
+Rexnord\thttp//www.youtube.com/watch?v=DyCvo3azMGs&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=35&pp=iAQB\tRexnord Shaft Mounted Quadrive Gear Drive Installation\tGear Drives / Shaft Mounted-Installation
+Rexnord\thttp//www.youtube.com/watch?v=tcVBms4Ykio&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=38&pp=iAQB\tHow To Install Rexnord’s Omega Elastomeric Coupling\tCouplings / Elastomeric-Installation
+Link-Belt\thttp//www.youtube.com/watch?v=Fyi5vSNcqX4&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=39&pp=iAQB\tRex and Link-Belt End Cap Field Retrofit	Mounted Bearings\tBearings / End Caps
+Addax\thttp//www.youtube.com/watch?v=QOcyrT1Of7M&list=PLAlEww10u5tkAq1kOauXgm50yeIJqF7IN&index=40&pp=iAQB\tPerforming General Maintenance on Addax Composite Couplings\tCouplings / Composite-Maintenance
 
 ContiTech\thttps://www.youtube.com/watch?v=pKewCZqx7Pc\tCONTI® VSM MINI – Tutorial EN\tBelts / Installation
 ContiTech\thttps://www.youtube.com/watch?v=LQ2yDBpT0-8\tCONTI® LASER ALIGNER – Tutorial EN\tBelts / Installation
@@ -834,44 +930,76 @@ ContiTech\thttps://www.youtube.com/watch?v=-yTwmNA5TRo\tContinental - How to Use
 ContiTech\thttps://www.youtube.com/watch?v=OYM9PSyPRxE\tHow to get help on drive belt installation and maintenance | Continental\tBelts / Installation
 ContiTech\thttps://www.youtube.com/watch?v=hcJvKw1rtqA\tDrive Belt Maintenance in Your Pocket – Make Power Smart App\tBelts / Maintenance
 
-Carlisle\thttps://www.youtube.com/watch?v=AB-8kIlbMPg\tTimken Belts V Belt Tensioning with the Tension Finder\tBelts / Installation
-Carlisle\thttps://www.youtube.com/watch?v=JVlZN803_og\tTimken Belts Tensioning with the Tensiometer\tBelts / Installation
-Carlisle\thttps://www.youtube.com/watch?v=lQF4sLJmP0s\tTimken Belts Tensioning with the Frequency Finder\tBelts / HTD Installation
-Carlisle\thttps://www.youtube.com/watch?v=rdTdVolVY6c\tTimken Belts Drive Alignment with Laser Align\tBelts / Installation
-Bestorq\thttps://www.youtube.com/watch?v=dGc3LofJI4E\tProper V-Belt Tensioning\tBelts / Installation
-Bestorq\thttps://www.youtube.com/watch?v=bsGDUCFiepU\t*NEW* Bestorq Laser Alignment Tool - How to Video\tBelts / Installation
-Bestorq\thttps://www.youtube.com/watch?v=pfXNbsQ31C8\tTension Stick\tBelts / Installation
-Bestorq\thttps://www.youtube.com/watch?v=LonmUOxMZ8c\tDan Weaver of Bestorq Belts - Training Part 1\tBelts
-Bestorq\thttps://www.youtube.com/watch?v=06kI-_mrSzc\tBestorq Laser Alignment how-to video\tBelts / Installation
+Carlisle\thttps://www.youtube.com/watch?v=AB-8kIlbMPg\tTimken Belts V Belt Tensioning with the Tension Finder\tBelts / V-Belt-Installation
+Carlisle\thttps://www.youtube.com/watch?v=JVlZN803_og\tTimken Belts Tensioning with the Tensiometer\tBelts / V-Belt-Installation
+Carlisle\thttps://www.youtube.com/watch?v=lQF4sLJmP0s\tTimken Belts Tensioning with the Frequency Finder\tBelts / HTD-Installation
+Carlisle\thttps://www.youtube.com/watch?v=rdTdVolVY6c\tTimken Belts Drive Alignment with Laser Align\tBelts / V-Belt-Installation
+Bestorq\thttps://www.youtube.com/watch?v=dGc3LofJI4E\tProper V-Belt Tensioning\tBelts / V-Belt-Installation
+Bestorq\thttps://www.youtube.com/watch?v=bsGDUCFiepU\t*NEW* Bestorq Laser Alignment Tool - How to Video\tBelts / V-Belt-Installation
+Bestorq\thttps://www.youtube.com/watch?v=pfXNbsQ31C8\tTension Stick\tBelts / V-Belt-Installation
+Bestorq\thttps://www.youtube.com/watch?v=LonmUOxMZ8c\tDan Weaver of Bestorq Belts - Training Part 1\tBelts / V-Belt-General
+Bestorq\thttps://www.youtube.com/watch?v=06kI-_mrSzc\tBestorq Laser Alignment how-to video\tBelts / V-Belt-Installation
 
-Bando\thttps://www.youtube.com/watch?v=L_Xpz7VMXMA\tBando Tension Master\tBelts / Installation
+Bando\thttps://www.youtube.com/watch?v=L_Xpz7VMXMA\tBando Tension Master\tBelts / V-Belt-Installation
 
-G.L. Huyett\thttps://www.youtube.com/watch?v=CAVHbRjpx8s\tUsing External Straight Tip Retaining Ring Pliers\tTools / Pliers-Retaining Rings
-G.L. Huyett\thttps://www.youtube.com/watch?v=pK0R9_6mDBc\tUsing Internal Standard 45-Degree Tip Retaining Ring Pliers\tTools / Pliers-Retaining Rings
-G.L. Huyett\thttps://www.youtube.com/watch?v=X0bqFjXLsdI\tUsing Internal Straight Tip Retaining Ring Pliers\tTools / Pliers-Retaining Rings
-G.L. Huyett\thttps://www.youtube.com/watch?v=jMsKtl7K5iQ\tUsing Convertible Straight Tip Retaining Ring Pliers\tTools / Pliers-Retaining Rings
+G.L. Huyett\thttps://www.youtube.com/watch?v=CAVHbRjpx8s\tUsing External Straight Tip Retaining Ring Pliers\tTools / Pliers
+G.L. Huyett\thttps://www.youtube.com/watch?v=pK0R9_6mDBc\tUsing Internal Standard 45-Degree Tip Retaining Ring Pliers\tTools / Pliers
+G.L. Huyett\thttps://www.youtube.com/watch?v=X0bqFjXLsdI\tUsing Internal Straight Tip Retaining Ring Pliers\tTools / Pliers
+G.L. Huyett\thttps://www.youtube.com/watch?v=jMsKtl7K5iQ\tUsing Convertible Straight Tip Retaining Ring Pliers\tTools / Pliers
 G.L. Huyett\thttps://www.youtube.com/watch?v=exARoczY9dQ\tHow to Measure an Internal Housing Ring - Huyett.com\tFasteners / Retaining Rings-Identification
 G.L. Huyett\thttps://www.youtube.com/watch?v=MGoeRKoh0As\tHow to Measure an External Housing Ring - Huyett.com\tFasteners / Retaining Rings-Identification
 
-Smalley\thttps://www.youtube.com/watch?v=3h0IPS_zkhQ\tRetaining Ring Manual Installation - Internal / Housing\tFasteners / Retaining Rings-Spiral
-Smalley\thttps://www.youtube.com/watch?v=gppHd3bVO4Y\tRetaining Ring Manual Installation - External / Shaft\tFasteners / Retaining Rings-Spiral
-Smalley\thttps://www.youtube.com/watch?v=v_8L3wIzzF4\tRetaining Ring Manual Removal - Internal / Housing\tFasteners / Retaining Rings-Spiral
-Smalley\thttps://www.youtube.com/watch?v=w_K419FmiUY\tRetaining Ring Manual Removal - External / Shaft\tFasteners / Retaining Rings-Spiral
-Smalley\thttps://www.youtube.com/watch?v=ka6jmXWqmoY\tHow to Install and Remove an Internal Spirolox® Retaining Ring\tFasteners / Retaining Rings-Spiral
-Smalley\thttps://www.youtube.com/watch?v=AiSafUxCyrA\tHow to Install and Remove an External Spirolox® Retaining Ring\tFasteners / Retaining Rings-Spiral
+Smalley\thttps://www.youtube.com/watch?v=3h0IPS_zkhQ\tRetaining Ring Manual Installation - Internal / Housing\tFasteners / Retaining Rings
+Smalley\thttps://www.youtube.com/watch?v=gppHd3bVO4Y\tRetaining Ring Manual Installation - External / Shaft\tFasteners / Retaining Rings
+Smalley\thttps://www.youtube.com/watch?v=v_8L3wIzzF4\tRetaining Ring Manual Removal - Internal / Housing\tFasteners / Retaining Rings
+Smalley\thttps://www.youtube.com/watch?v=w_K419FmiUY\tRetaining Ring Manual Removal - External / Shaft\tFasteners / Retaining Rings
+Smalley\thttps://www.youtube.com/watch?v=ka6jmXWqmoY\tHow to Install and Remove an Internal Spirolox® Retaining Ring\tFasteners / Retaining Rings
+Smalley\thttps://www.youtube.com/watch?v=AiSafUxCyrA\tHow to Install and Remove an External Spirolox® Retaining Ring\tFasteners / Retaining Rings
 
-Rotor Clip\thttps://www.youtube.com/watch?v=zf0SjQWnKu8\tHow To Use A Retaining Ring Applicator – For Tape Stacked Parts\tFasteners / Retaining Rings-Applicators
+Rotor Clip\thttps://www.youtube.com/watch?v=zf0SjQWnKu8\tHow To Use A Retaining Ring Applicator – For Tape Stacked Parts\tFasteners / Applicators
 
 
 PTI\thttps://www.youtube.com/watch?v=ZTsqt2zKz-8\tSAF Split Blocks: Features, Installation & Maintenance\tFasteners / Lock Washers
-PTI\thttps://youtu.be/ZTsqt2zKz-8?rel=0\tSAF / Split Blocks: Features, Installation & Maintenance\tMounted Bearings / Split Block-Installation
-PTI\thttps://youtu.be/pWhSAr3Ii1A?rel=0\t4 Ball Bearing Mounting Methods - Intro, Mounting and Maintenance\tMounted Bearings /  
-PTI\thttps://youtu.be/H6oND6sgMYA?rel=0\tMeasuring Swivel Torque for Mounted Ball Bearings\tMounted Bearings-Fit & Inspection
-PTI\thttps://www.youtube.com/watch?v=-qhVOW--QSs\tROLL-RING Chain Tensioner\tTools / Tensioners-Chain
+PTI\thttps://youtu.be/ZTsqt2zKz-8?rel=0\tSAF / Split Blocks: Features, Installation & Maintenance\tBearings / Mounted Bearings-Installation
+PTI\thttps://youtu.be/pWhSAr3Ii1A?rel=0\t4 Ball Bearing Mounting Methods - Intro, Mounting and Maintenance\tBearings / Mounted Bearings-Installation
+PTI\thttps://youtu.be/H6oND6sgMYA?rel=0\tMeasuring Swivel Torque for Mounted Ball Bearings\tBearings / Mounted Bearings-Installation
+PTI\thttps://www.youtube.com/watch?v=-qhVOW--QSs\tROLL-RING Chain Tensioner\tTools / Tensioners
 PTI\thttps://youtu.be/w_F7xcTrDC8?red=0\tPTI Quality Lab - Using Gauges to Measure the Taper Bore of a Drive Component\tTools / Guages-Drive Components
 PTI\thttps://youtu.be/mT49wTTLn8w?rel=0\tHow to Install a Spring Bush Bearing\tBearings / Spring Bush-Installation
 
+Tsubaki\thttps://www.youtube.com/watch?v=PuBBSl_yPYI\tRoller Chain Breaking Using a Punch and Chain Vise\tChain / Drive Chain-Installation
+Tsubaki\thttps://www.youtube.com/watch?v=QewxYqotJVk\tHow to connect Tsubaki Roller Chain on a sprocket\tChain / Connecting Links
+Tsubaki\thttps://www.youtube.com/watch?v=_S5gll2cpHw\tHow to connect Tsubaki Roller Chain that is not on a sprocket\tChain / Connecting Links
+Tsubaki\thttps://www.youtube.com/watch?v=ktY3-oxmK1k\tHow to lubricate Tsubaki Roller Chains\tChain / Drive Chain-Maintenance
+DRIVES\thttps://www.youtube.com/watch?v=68hBSL4Zrik\tHow to Make Sure you Have the Correct Amount of Tension in your Chain\tChain / Drive Chain-Maintenance
 
+CRC	https://www.youtube.com/watch?v=5o9FWoabTvE	CRC Brakleen® Brake Parts Cleaner Demo Video	Chemicals / Brake Cleaners
+CRC	https://www.youtube.com/watch?v=Vmq_Ms91zVc	ABOM79: Remove Oil & Grease Build Up w/ CRC Heavy Duty Degreaser	Chemicals / Degreasers
+CRC	https://www.youtube.com/watch?v=xl197iHV70g	CRC Pro Strength Degreaser Demo	Chemicals / Degreasers
+CRC	https://www.youtube.com/watch?v=Qkkl1cbdNZY	CRC Industrial ECO Degreaser Demo Video	Chemicals / Degreasers
+CRC	https://www.youtube.com/watch?v=QGqMe8WVupM	CRC Fast Dry Degreaser Demo Video	Chemicals / Degreasers
+CRC	https://www.youtube.com/watch?v=G0OyjUr2lrY	How to Properly Maintain the CRC SmartWasher	Chemicals / Parts Washers
+CRC	https://www.youtube.com/watch?v=iofoxHzxY4U	CRC SmartWasher Maintenance	Chemicals / Parts Washers
+CRC	https://www.youtube.com/watch?v=SGtFi5a5wlU	How to Use CRC Evapo-Rust Heavy-Duty Rust Remover	Chemicals / Rust Removal
+CRC	https://www.youtube.com/watch?v=tvwc0guex50	CRC Rust Seal Demo Video	Chemicals / Rust Repair
+CRC	https://www.youtube.com/watch?v=xFu-9XgKe6A	CRC Rust Converter	Chemicals / Rust Repair
+CRC	https://www.youtube.com/watch?v=SnuvergCJ30	CRC Rust Off IND (Product Video)	Chemicals / Rust Removal
+
+Climax Metal	https://www.youtube.com/watch?v=K-kaEFSfGUo	Keyless Rigid Coupling Installation Demonstration\tCouplings / Keyless Locking Devices-Installation
+Climax Metal	https://www.youtube.com/watch?v=F6PWbfru7i4	Keyless Locking Devices (C405/C415/C425) — Install/Remove Instructions	Couplings / Keyless Locking Devices-Installation
+
+Kroil	https://www.youtube.com/watch?v=1PXS8kjEhi4	Kroil Penetrant Testimonials: Why Pros Turn to Kroil Penetrants	Chemicals / Penetrating Oil-General
+Kroil	https://youtu.be/EeST0Hw1Slo?si=-q4dLR7iEzaG8-sy	Kroil Penetrant w Graphite and Kano Industrial-Grade Products Video	Chemicals / Penetrating Oil-General
+Kroil	https://www.youtube.com/watch?v=cO-Rg8CpNYQ	On the Job with Big Jim's Auto (Kroil in automotive service)	Chemicals / Penetrating Oil-Maintenance
+Kroil	https://www.youtube.com/watch?v=64xGzl0tf9U	On the Job with AirTech (Aviation Service Pros)	Chemicals / Penetrating Oil-Maintenance
+Kroil	https://www.youtube.com/watch?v=tudYjoQhKZk	About Kroil (brand overview)	Chemicals / Penetrating Oil-General
+Kroil	https://youtu.be/xuxVQP5A2eI?si=bnM11ia3MwmzytOl	On the Job with Western Allied Mechanical (HVAC contractor)	Chemicals / Penetrating Oil-Maintenance
+Kroil	https://youtu.be/HbI8fvxC4Qg?si=dPPh3I3K45cH-JCx	About Kroil: A 360-Degree View of Kroil	Chemicals / Penetrating Oil-General
+Kroil	https://youtu.be/Bv4Wzwjyuac?si=2jP6IlJgTQULMHah	On the Job with Finelli Architectural Iron Works	Chemicals / Penetrating Oil-Maintenance
+Kroil	https://youtu.be/jKeKKoA6TX8?si=Nc-_sIyTDiZJ8Tlh	Kroil Maintenance Applications: Maritime	Chemicals / Penetrating Oil-Maintenance
+Kroil	https://youtu.be/hcY4uGhpZcY?si=Z2UzTrN72X6hwFCL	Kroil Maintenance Applications: Oil & Gas	Chemicals / Penetrating Oil-Maintenance
+Kroil	https://youtu.be/SrNYEx6Y8us?si=r6AK7VCI9kSdMVxI	Kroil Maintenance Applications: Transportation	Chemicals / Penetrating Oil-Maintenance
+Kroil	https://youtu.be/GteTo8wTFt4?si=7DlVn0H5jSthZ5ML	Kroil Maintenance Applications: Heavy Equipment	Chemicals / Penetrating Oil-Maintenance
 
 `.trim();
 
@@ -889,9 +1017,10 @@ function parseTSV(tsv){
       brand: (brand||"").trim(),
       url: (url||"").trim(),
       title: (title||"").trim(),
-      group: (group||"").trim(),
+      group: groupInfo.group,
       mainGroup: groupInfo.mainGroup,
       subGroup: groupInfo.subGroup,
+      videoType: groupInfo.videoType,
       provider: inferProvider(url||""),
       poster: null
     };
@@ -907,23 +1036,41 @@ function inferProvider(url){
 }
 
 function parseGroup(group){
-  const g = (group||"").trim();
-  if (!g) return { mainGroup: "", subGroup: "" };
-  const paren = g.match(/^(.*?)\s*\((.+)\)\s*$/);
+  const gRaw = (group||"").trim();
+  if (!gRaw) return { group: "", mainGroup: "", subGroup: "", videoType: "General" };
+
+  let groupPart = gRaw;
+  let videoType = "General";
+  const dashIndex = gRaw.lastIndexOf("-");
+  if (dashIndex > -1 && dashIndex < gRaw.length - 1){
+    const candidate = gRaw.slice(dashIndex + 1).trim();
+    const before = gRaw.slice(0, dashIndex).trim();
+    if (candidate){
+      videoType = candidate;
+      groupPart = before || gRaw;
+    }
+  }
+  if (/^general$/i.test(videoType)) videoType = "General";
+
+  const paren = groupPart.match(/^(.*?)\s*\((.+)\)\s*$/);
   if (paren){
     return {
+      group: groupPart,
       mainGroup: paren[1].trim(),
-      subGroup: paren[2].trim()
+      subGroup: paren[2].trim(),
+      videoType
     };
   }
-  const slashIndex = g.indexOf("/");
+  const slashIndex = groupPart.indexOf("/");
   if (slashIndex !== -1){
     return {
-      mainGroup: g.slice(0, slashIndex).trim(),
-      subGroup: g.slice(slashIndex + 1).trim()
+      group: groupPart,
+      mainGroup: groupPart.slice(0, slashIndex).trim(),
+      subGroup: groupPart.slice(slashIndex + 1).trim(),
+      videoType
     };
   }
-  return { mainGroup: g, subGroup: "" };
+  return { group: groupPart, mainGroup: groupPart, subGroup: "", videoType };
 }
 
 function canonicalUrl(v){
@@ -1006,6 +1153,7 @@ const els = {
   brand: document.getElementById("brand"),
   group: document.getElementById("group"),
   type: document.getElementById("type"),
+  videoType: document.getElementById("videoType"),
   chips: document.getElementById("chips"),
   count: document.getElementById("count"),
   carousel: document.getElementById("carousel"),
@@ -1033,6 +1181,7 @@ let carouselIndex = 0;
 const DEFAULT_BRAND = "All";
 const DEFAULT_GROUP = "All";
 const DEFAULT_TYPE = "All";
+const DEFAULT_VIDEO_TYPE = "All";
 
 init();
 
@@ -1042,15 +1191,19 @@ function init(){
   buildSelect(els.brand, [DEFAULT_BRAND, ...uniq(videos.map(v=>v.brand)).sort((a,b)=>a.localeCompare(b))], DEFAULT_BRAND);
   buildSelect(els.group, [DEFAULT_GROUP, ...uniq(videos.map(v=>v.mainGroup)).sort((a,b)=>a.localeCompare(b))], DEFAULT_GROUP);
   buildSelect(els.type, [DEFAULT_TYPE, ...uniq(videos.map(v=>v.subGroup).filter(Boolean)).sort((a,b)=>a.localeCompare(b))], DEFAULT_TYPE);
+  buildSelect(els.videoType, [DEFAULT_VIDEO_TYPE, ...uniq(videos.map(v=>v.videoType)).sort((a,b)=>a.localeCompare(b))], DEFAULT_VIDEO_TYPE);
 
   els.q.addEventListener("input", render);
   els.brand.addEventListener("change", render);
   els.group.addEventListener("change", render);
   els.type.addEventListener("change", render);
+  els.videoType.addEventListener("change", render);
   els.btnReset.addEventListener("click", resetFilters);
   els.btnPrev.addEventListener("click", ()=>shiftCarousel(-1));
   els.btnNext.addEventListener("click", ()=>shiftCarousel(1));
   window.addEventListener("resize", handleCarouselResize);
+  document.addEventListener("click", (e)=>{ if (!e.target.closest(".control.select")) closeAllSelects(); });
+  document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeAllSelects(); });
 
   els.btnClose.addEventListener("click", closeModal);
   els.overlay.addEventListener("click", (e)=>{ if (e.target === els.overlay) closeModal(); });
@@ -1073,6 +1226,109 @@ function buildSelect(sel, items, selected){
     sel.appendChild(opt);
   }
   sel.value = nextValue;
+  syncCustomSelect(sel);
+}
+
+function ensureCustomSelect(sel){
+  const control = sel.closest(".control.select");
+  if (!control || control.dataset.customSelect === "true") return;
+  control.dataset.customSelect = "true";
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "selectTrigger";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.innerHTML = `<span class="selectLabel"></span><span class="selectChevron" aria-hidden="true"></span>`;
+
+  const menu = document.createElement("div");
+  menu.className = "selectMenu";
+  menu.setAttribute("role", "listbox");
+  menu.setAttribute("aria-hidden", "true");
+
+  control.insertBefore(trigger, sel);
+  control.appendChild(menu);
+
+  sel.classList.add("nativeSelect");
+  sel.setAttribute("tabindex", "-1");
+  sel.setAttribute("aria-hidden", "true");
+
+  trigger.addEventListener("click", ()=>{
+    const isOpen = control.classList.contains("selectOpen");
+    closeAllSelects();
+    if (!isOpen) openSelect(control);
+  });
+  trigger.addEventListener("keydown", (e)=>{
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      trigger.click();
+    }
+  });
+  menu.addEventListener("click", (e)=>{
+    const option = e.target.closest(".selectOption");
+    if (!option) return;
+    const value = option.getAttribute("data-value") || "";
+    if (sel.value !== value){
+      sel.value = value;
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    closeAllSelects();
+  });
+}
+
+function syncCustomSelect(sel){
+  ensureCustomSelect(sel);
+  const control = sel.closest(".control.select");
+  if (!control) return;
+  const menu = control.querySelector(".selectMenu");
+  const label = control.querySelector(".selectLabel");
+  if (!menu || !label) return;
+
+  menu.innerHTML = "";
+  let selectedText = "";
+  for (const opt of sel.options){
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "selectOption";
+    option.textContent = opt.textContent;
+    option.setAttribute("role", "option");
+    option.setAttribute("data-value", opt.value);
+    if (opt.value === sel.value){
+      option.classList.add("selected");
+      option.setAttribute("aria-selected", "true");
+      selectedText = opt.textContent;
+    } else {
+      option.setAttribute("aria-selected", "false");
+    }
+    menu.appendChild(option);
+  }
+
+  if (!selectedText && sel.options.length){
+    selectedText = sel.options[sel.selectedIndex]?.textContent || sel.options[0].textContent;
+  }
+  label.textContent = selectedText || "";
+}
+
+function openSelect(control){
+  control.classList.add("selectOpen");
+  const trigger = control.querySelector(".selectTrigger");
+  const menu = control.querySelector(".selectMenu");
+  if (trigger) trigger.setAttribute("aria-expanded", "true");
+  if (menu){
+    menu.setAttribute("aria-hidden", "false");
+    const selected = menu.querySelector(".selectOption.selected");
+    if (selected) selected.scrollIntoView({ block: "nearest" });
+  }
+}
+
+function closeAllSelects(){
+  document.querySelectorAll(".control.selectOpen").forEach((control)=>{
+    control.classList.remove("selectOpen");
+    const trigger = control.querySelector(".selectTrigger");
+    const menu = control.querySelector(".selectMenu");
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+    if (menu) menu.setAttribute("aria-hidden", "true");
+  });
 }
 
 function getSearchTokens(q){
@@ -1081,58 +1337,56 @@ function getSearchTokens(q){
 
 function matchesTokens(v, tokens){
   if (!tokens.length) return true;
-  const haystack = `${v.brand} ${v.title} ${v.group}`.toLowerCase();
+  const haystack = `${v.brand} ${v.title} ${v.group} ${v.videoType}`.toLowerCase();
   return tokens.every(t => haystack.includes(t));
 }
 
-function getAvailableBrands(group){
-  return uniq(
-    videos
-      .filter(v =>
-        (group === DEFAULT_GROUP || v.mainGroup === group)
-      )
-      .map(v => v.brand)
-  ).sort((a,b)=>a.localeCompare(b));
-}
-
-function getAvailableGroups(brand){
-  return uniq(
-    videos
-      .filter(v => brand === DEFAULT_BRAND || v.brand === brand)
-      .map(v => v.mainGroup)
-  ).sort((a,b)=>a.localeCompare(b));
-}
-
-function getAvailableBrandsByType(group, type){
+function getAvailableBrandsByFilters(group, type, videoType){
   return uniq(
     videos
       .filter(v =>
         (group === DEFAULT_GROUP || v.mainGroup === group) &&
-        (type === DEFAULT_TYPE || v.subGroup === type)
+        (type === DEFAULT_TYPE || v.subGroup === type) &&
+        (videoType === DEFAULT_VIDEO_TYPE || v.videoType === videoType)
       )
       .map(v => v.brand)
   ).sort((a,b)=>a.localeCompare(b));
 }
 
-function getAvailableGroupsByType(brand, type){
+function getAvailableGroupsByFilters(brand, type, videoType){
   return uniq(
     videos
       .filter(v =>
         (brand === DEFAULT_BRAND || v.brand === brand) &&
-        (type === DEFAULT_TYPE || v.subGroup === type)
+        (type === DEFAULT_TYPE || v.subGroup === type) &&
+        (videoType === DEFAULT_VIDEO_TYPE || v.videoType === videoType)
       )
       .map(v => v.mainGroup)
   ).sort((a,b)=>a.localeCompare(b));
 }
 
-function getAvailableTypes(brand, group){
+function getAvailableTypesByFilters(brand, group, videoType){
   return uniq(
     videos
       .filter(v =>
         (brand === DEFAULT_BRAND || v.brand === brand) &&
-        (group === DEFAULT_GROUP || v.mainGroup === group)
+        (group === DEFAULT_GROUP || v.mainGroup === group) &&
+        (videoType === DEFAULT_VIDEO_TYPE || v.videoType === videoType)
       )
       .map(v => v.subGroup)
+      .filter(Boolean)
+  ).sort((a,b)=>a.localeCompare(b));
+}
+
+function getAvailableVideoTypes(brand, group, type){
+  return uniq(
+    videos
+      .filter(v =>
+        (brand === DEFAULT_BRAND || v.brand === brand) &&
+        (group === DEFAULT_GROUP || v.mainGroup === group) &&
+        (type === DEFAULT_TYPE || v.subGroup === type)
+      )
+      .map(v => v.videoType)
       .filter(Boolean)
   ).sort((a,b)=>a.localeCompare(b));
 }
@@ -1141,31 +1395,39 @@ function syncFilterOptions(){
   let brand = els.brand.value || DEFAULT_BRAND;
   let group = els.group.value || DEFAULT_GROUP;
   let type = els.type.value || DEFAULT_TYPE;
+  let videoType = els.videoType.value || DEFAULT_VIDEO_TYPE;
   let brandOptions = [];
   let groupOptions = [];
   let typeOptions = [];
+  let videoTypeOptions = [];
   let changed = true;
   let guard = 0;
 
-  while (changed && guard < 3){
+  while (changed && guard < 4){
     guard += 1;
     changed = false;
 
-    brandOptions = [DEFAULT_BRAND, ...getAvailableBrandsByType(group, type)];
+    brandOptions = [DEFAULT_BRAND, ...getAvailableBrandsByFilters(group, type, videoType)];
     if (!brandOptions.includes(brand)){
       brand = DEFAULT_BRAND;
       changed = true;
     }
 
-    groupOptions = [DEFAULT_GROUP, ...getAvailableGroupsByType(brand, type)];
+    groupOptions = [DEFAULT_GROUP, ...getAvailableGroupsByFilters(brand, type, videoType)];
     if (!groupOptions.includes(group)){
       group = DEFAULT_GROUP;
       changed = true;
     }
 
-    typeOptions = [DEFAULT_TYPE, ...getAvailableTypes(brand, group)];
+    typeOptions = [DEFAULT_TYPE, ...getAvailableTypesByFilters(brand, group, videoType)];
     if (!typeOptions.includes(type)){
       type = DEFAULT_TYPE;
+      changed = true;
+    }
+
+    videoTypeOptions = [DEFAULT_VIDEO_TYPE, ...getAvailableVideoTypes(brand, group, type)];
+    if (!videoTypeOptions.includes(videoType)){
+      videoType = DEFAULT_VIDEO_TYPE;
       changed = true;
     }
   }
@@ -1173,6 +1435,7 @@ function syncFilterOptions(){
   buildSelect(els.brand, brandOptions, brand);
   buildSelect(els.group, groupOptions, group);
   buildSelect(els.type, typeOptions, type);
+  buildSelect(els.videoType, videoTypeOptions, videoType);
 }
 
 function resetFilters(){
@@ -1180,6 +1443,7 @@ function resetFilters(){
   els.brand.value = DEFAULT_BRAND;
   els.group.value = DEFAULT_GROUP;
   els.type.value = DEFAULT_TYPE;
+  els.videoType.value = DEFAULT_VIDEO_TYPE;
   carouselIndex = 0;
   render();
 }
@@ -1189,12 +1453,14 @@ function filterList(){
   const brand = els.brand.value;
   const group = els.group.value;
   const type = els.type.value;
+  const videoType = els.videoType.value;
 
   let list = videos.filter(v =>
     matchesTokens(v, tokens) &&
     (brand === DEFAULT_BRAND || v.brand === brand) &&
     (group === DEFAULT_GROUP || v.mainGroup === group) &&
-    (type === DEFAULT_TYPE || v.subGroup === type)
+    (type === DEFAULT_TYPE || v.subGroup === type) &&
+    (videoType === DEFAULT_VIDEO_TYPE || v.videoType === videoType)
   );
 
   return list;
@@ -1212,7 +1478,8 @@ function render(){
   if (q) chips.push({k:"Search", v:q});
   if (els.brand.value !== DEFAULT_BRAND) chips.push({k:"Brand", v:els.brand.value});
   if (els.group.value !== DEFAULT_GROUP) chips.push({k:"Group", v:els.group.value});
-  if (els.type.value !== DEFAULT_TYPE) chips.push({k:"Type", v:els.type.value});
+  if (els.type.value !== DEFAULT_TYPE) chips.push({k:"Product type", v:els.type.value});
+  if (els.videoType.value !== DEFAULT_VIDEO_TYPE) chips.push({k:"Video type", v:els.videoType.value});
   els.chips.innerHTML = chips.map(c=>`<span class="chip">${escapeHtml(c.k)}: ${escapeHtml(c.v)}</span>`).join("");
 
   renderCarousel(list);
@@ -1508,9 +1775,10 @@ async function loadJson(){
         brand: (x.brand||"").trim(),
         url: (x.url||"").trim(),
         title: (x.title||"").trim(),
-        group: (x.group||"").trim(),
+        group: groupInfo.group,
         mainGroup: groupInfo.mainGroup,
         subGroup: groupInfo.subGroup,
+        videoType: (x.videoType || groupInfo.videoType || "General"),
         provider: (x.provider || inferProvider(x.url||"")),
         poster: x.poster || null
       };
@@ -1522,6 +1790,7 @@ async function loadJson(){
     buildSelect(els.brand, [DEFAULT_BRAND, ...uniq(videos.map(v=>v.brand)).sort((a,b)=>a.localeCompare(b))], DEFAULT_BRAND);
     buildSelect(els.group, [DEFAULT_GROUP, ...uniq(videos.map(v=>v.mainGroup)).sort((a,b)=>a.localeCompare(b))], DEFAULT_GROUP);
     buildSelect(els.type, [DEFAULT_TYPE, ...uniq(videos.map(v=>v.subGroup).filter(Boolean)).sort((a,b)=>a.localeCompare(b))], DEFAULT_TYPE);
+    buildSelect(els.videoType, [DEFAULT_VIDEO_TYPE, ...uniq(videos.map(v=>v.videoType)).sort((a,b)=>a.localeCompare(b))], DEFAULT_VIDEO_TYPE);
 
     resetFilters();
     alert(`Loaded ${videos.length} videos from videos.json`);
@@ -1532,6 +1801,5 @@ async function loadJson(){
 </script>
 </body>
 </html>
-
 
 
