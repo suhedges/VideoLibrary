@@ -330,7 +330,7 @@
       margin:0;
     }
 
-    /* Empty state */
+
     .empty{
       background: rgba(255,255,255,.85);
       border:1px dashed #cbd5e1;
@@ -341,7 +341,7 @@
       box-shadow: 0 10px 25px rgba(2,6,23,.06);
     }
 
-    /* Modal */
+
     .modalOverlay{
       position:fixed;
       inset:0;
@@ -355,12 +355,14 @@
     }
     .modalOverlay.show{ display:flex; }
     .modal{
-      width:min(820px, 100%);
+      width:min(554px, 100%);
       border-radius: 20px;
       background: rgba(255,255,255,.95);
       border:1px solid rgba(226,232,240,.9);
       box-shadow: 0 30px 90px rgba(2,6,23,.35);
       overflow:hidden;
+      position:absolute;
+      top;44px;
     }
     .modalHead{
       display:flex;
@@ -417,7 +419,7 @@
       justify-content:space-between;
     }
     .modalFoot .left{
-      display:flex;
+      display:none;
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
@@ -1265,9 +1267,7 @@ async function getVimeoData(url){
   return data;
 }
 
-/* =========================
-   Modal player
-   ========================= */
+
 let currentVideo = null;
 
 async function openModal(v){
@@ -1307,14 +1307,12 @@ async function openModal(v){
       iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
       iframe.allowFullscreen = true;
 
-      // PATCH: referrer policy (helps with config errors)
       iframe.referrerPolicy = "strict-origin-when-cross-origin";
 
       iframe.src = youTubeEmbedSrc(id);
       els.mBody.appendChild(iframe);
     }
   } else if (v.provider === "vimeo"){
-    // Prefer direct embed; fallback to oEmbed HTML if needed.
     const direct = vimeoEmbedSrcFromUrl(v.url);
 
     if (direct){
