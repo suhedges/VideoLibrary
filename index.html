@@ -116,7 +116,7 @@
     }
 
     .panel{
-      background: rgba(255,255,255,.85);
+      background: white;
       backdrop-filter: blur(10px);
       border:1px solid var(--border);
       border-radius: 18px;
@@ -209,6 +209,7 @@
     .carouselViewport{
       position:relative;
       overflow:hidden;
+      padding: 6px;
       border-radius: 20px;
     }
     .carouselViewport:before,
@@ -223,21 +224,19 @@
     }
     .carouselViewport:before{
       left:0;
-      background: linear-gradient(90deg, rgba(246,247,251,.98), rgba(246,247,251,0));
     }
     .carouselViewport:after{
       right:0;
-      background: linear-gradient(270deg, rgba(246,247,251,.98), rgba(246,247,251,0));
     }
     .carouselTrack{
       display:flex;
       gap: var(--carousel-gap);
-      transition: transform .35s ease;
+      transition: none;
       will-change: transform;
-      padding: 2px;
     }
     .carouselTrack .card{
-      flex: 0 0 calc((100% - (var(--carousel-gap) * (var(--carousel-cards) - 1))) / var(--carousel-cards));
+      flex: 0 0 var(--card-width, calc((100% - (var(--carousel-gap) * (var(--carousel-cards) - 1))) / var(--carousel-cards)));
+      width: var(--card-width, auto);
     }
     .carouselBtn{
       width: 50px;
@@ -275,10 +274,7 @@
       cursor:default;
       box-shadow: 0 6px 14px rgba(37,99,235,.12);
     }
-    @media (max-width: 1100px){ :root{ --carousel-cards: 3; } }
-    @media (max-width: 820px){ :root{ --carousel-cards: 2; } }
     @media (max-width: 560px){
-      :root{ --carousel-cards: 1; }
       .carousel{ grid-template-columns: 1fr; }
       .carouselBtn{
         width: 44px;
@@ -293,7 +289,7 @@
     }
 
     .card{
-      background: rgba(255,255,255,.92);
+      background: white;
       border:1px solid var(--border);
       border-radius: 18px;
       overflow:hidden;
@@ -417,7 +413,7 @@
 
 
     .empty{
-      background: rgba(255,255,255,.85);
+      background: white;
       border:1px dashed #cbd5e1;
       border-radius: 18px;
       padding: 22px;
@@ -1281,6 +1277,13 @@ function getCarouselGap(){
   return Number.isFinite(value) ? value : 14;
 }
 
+function getCarouselContentWidth(){
+  const styles = getComputedStyle(els.carouselViewport);
+  const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+  const paddingRight = parseFloat(styles.paddingRight) || 0;
+  return Math.max(0, els.carouselViewport.clientWidth - paddingLeft - paddingRight);
+}
+
 function clampCarouselIndex(index, length, perView){
   const maxIndex = Math.max(0, length - perView);
   return Math.min(Math.max(index, 0), maxIndex);
@@ -1307,8 +1310,11 @@ function updateCarouselPosition(){
   }
   const perView = getPerView();
   const gap = getCarouselGap();
-  const viewportWidth = els.carouselViewport.clientWidth;
-  const cardWidth = (viewportWidth - gap * (perView - 1)) / perView;
+  const contentWidth = getCarouselContentWidth();
+  const cardWidth = (contentWidth - gap * (perView - 1)) / perView;
+  if (cardWidth > 0){
+    els.grid.style.setProperty("--card-width", `${cardWidth}px`);
+  }
   const offset = (cardWidth + gap) * carouselIndex;
   els.grid.style.transform = `translateX(${-offset}px)`;
 }
