@@ -388,12 +388,30 @@
       cursor:pointer;
       display:flex;
       flex-direction:column;
-      min-height: 280px;
+      min-height: 250px;
     }
     .card:hover{
       box-shadow: var(--shadow2);
       border-color:#cbd5e1;
     }
+    .providerBadge{
+      position:absolute;
+      top:8px;
+      right:8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing:.6px;
+      color: #fff;
+      background: rgba(15,23,42,.58);
+      box-shadow: 0 8px 18px rgba(2,6,23,.22);
+      text-transform: uppercase;
+      z-index: 2;
+    }
+    .providerBadge[data-provider="youtube"]{ background: rgba(220,38,38,.52); }
+    .providerBadge[data-provider="vimeo"]{ background: rgba(96,165,250,.52); color:#0b1220; }
+    .providerBadge[data-provider="local"]{ background: rgba(15,23,42,.85); display:none; }
 
     .thumb{
       position:relative;
@@ -472,24 +490,10 @@
       border:1px solid rgba(15,23,42,.08);
       color: #0f172a;
     }
-    .provider{
-      margin-top:auto;
-      text-align:center;
-      width:100%;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 700;
-    }
-    .provider[data-provider="youtube"]{
-      color: var(--youtube);
-    }
-    .provider[data-provider="vimeo"]{
-      color: var(--vimeo);
-    }
     .card h3{
       margin:0;
-      margin-top:20px;
-      font-size: 14px;
+      margin-top:10px;
+      font-size: 12px;
       line-height: 1.25;
       letter-spacing: .1px;
       text-align:center;
@@ -1493,11 +1497,17 @@ function renderCarousel(list){
     img.alt = `${v.brand} - ${v.title}`;
     img.src = makePlaceholderDataUrl(v.brand);
 
+    const providerBadge = document.createElement("div");
+    providerBadge.className = "providerBadge";
+    providerBadge.dataset.provider = v.provider;
+    providerBadge.textContent = v.provider.toUpperCase();
+
     const play = document.createElement("div");
     play.className = "play";
     play.innerHTML = `<div class="playBtn" aria-hidden="true"></div>`;
 
     thumb.appendChild(img);
+    thumb.appendChild(providerBadge);
     thumb.appendChild(play);
 
     const meta = document.createElement("div");
@@ -1509,7 +1519,6 @@ function renderCarousel(list){
         
       </div>
       <h3>${escapeHtml(v.title)}</h3>
-      <span class="provider" data-provider="${escapeHtml(v.provider)}">${escapeHtml(v.provider.toUpperCase())}</span>
       <p class="small">${escapeHtml(compactUrl(v.url))}</p>
     `;
 
